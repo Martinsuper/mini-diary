@@ -1,11 +1,4 @@
 import { OverlayType } from "../../../shared/types";
-import {
-	saveFirstDayOfWeekPref,
-	saveFutureEntriesPref,
-	saveHideTitlesPref,
-	saveThemePref,
-	saveSpellcheckPref,
-} from "../../files/preferences/preferences";
 import { Weekday, Theme, ThemePref } from "../../types";
 import { getThemeFromPref } from "../../utils/native-theme";
 import { ThunkActionT } from "../store";
@@ -106,26 +99,26 @@ export const updateSpellcheckPref = (enableSpellcheck: boolean): ThunkActionT =>
 	dispatch,
 ): void => {
 	dispatch(setEnableSpellcheck(enableSpellcheck));
-	saveSpellcheckPref(enableSpellcheck);
+	void window.miniDiary.preferences.set("enableSpellcheck", enableSpellcheck);
 };
 
 export const updateFutureEntriesPref = (allowFutureEntries: boolean): ThunkActionT => (
 	dispatch,
 ): void => {
 	dispatch(setAllowFutureEntries(allowFutureEntries));
-	saveFutureEntriesPref(allowFutureEntries);
+	void window.miniDiary.preferences.set("allowFutureEntries", allowFutureEntries);
 };
 
 export const updateHideTitlesPref = (hideTitles: boolean): ThunkActionT => (dispatch): void => {
 	dispatch(setHideTitles(hideTitles));
-	saveHideTitlesPref(hideTitles);
+	void window.miniDiary.preferences.set("hideTitles", hideTitles);
 };
 
 export const updateFirstDayOfWeekPref = (firstDayOfWeek: Weekday | null): ThunkActionT => (
 	dispatch,
 ): void => {
 	dispatch(setFirstDayOfWeek(firstDayOfWeek));
-	saveFirstDayOfWeekPref(firstDayOfWeek);
+	void window.miniDiary.preferences.set("firstDayOfWeek", firstDayOfWeek);
 };
 
 export const updateThemePref = (themePref: ThemePref): ThunkActionT => (dispatch): void => {
@@ -135,5 +128,5 @@ export const updateThemePref = (themePref: ThemePref): ThunkActionT => (dispatch
 
 	// Update theme preference in state and preferences file
 	dispatch(setThemePref(themePref));
-	saveThemePref(themePref);
+	void window.miniDiary.preferences.set("theme", themePref);
 };

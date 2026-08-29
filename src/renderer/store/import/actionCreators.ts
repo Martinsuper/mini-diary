@@ -1,6 +1,5 @@
 import logger from "electron-log";
 
-import { readFile } from "../../files/fileAccess";
 import { parseDayOneJson, parseJrnlJson, parseMiniDiaryJson } from "../../files/import/json";
 import { parseDayOneTxt } from "../../files/import/txt";
 import { ImportFormat } from "../../types";
@@ -52,15 +51,12 @@ export function setImportFormat(importFormat: ImportFormat): SetImportFormatActi
 
 // Thunks
 
-export const runImport = (importFilePath: string): ThunkActionT => (dispatch, getState): void => {
+export const runImport = (importFilePath: string): ThunkActionT => async (dispatch, getState): Promise<void> => {
 	const { importFormat } = getState().import;
 
 	dispatch(setImportInProgress());
 	try {
-		const fileContent = readFile(importFilePath);
-		if (fileContent instanceof Buffer) {
-			throw Error("Import file cannot be binary");
-		}
+		const fileContent = await window.miniDiary.diary.readTextFile(importFilePath);
 
 		// Get parser function for import format
 		let parseFunc;

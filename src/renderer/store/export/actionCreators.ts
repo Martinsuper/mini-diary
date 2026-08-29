@@ -1,12 +1,8 @@
-import { remote } from "electron";
-
 import logger from "electron-log";
 
 import { convertToMiniDiaryJson } from "../../files/export/json";
 import { convertToMd } from "../../files/export/md";
-import { convertToPdf } from "../../files/export/pdf";
 import { convertToDayOneTxt } from "../../files/export/txt";
-import { writeFile } from "../../files/fileAccess";
 import { ExportFormat, Entries } from "../../types";
 import { translations } from "../../utils/i18n";
 import { ThunkActionT } from "../store";
@@ -52,27 +48,24 @@ function setExportSuccess(): SetExportSuccessAction {
 // Thunks
 
 const exportToFile = (
-	converterFunc: (entries: Entries) => Promise<string | Buffer>,
-	exportFormat: ExportFormat,
+	converterFunc: (entries: Entries) => Promise<string>,
+	exportFormat: Exclude<ExportFormat, "pdf">,
 ): ThunkActionT => async (dispatch, getState): Promise<void> => {
-	const fileExtension = fileExtensions[exportFormat];
-	const { canceled, filePath } = await remote.dialog.showSaveDialog({
-		defaultPath: `*/mini-diary-export.${fileExtension}`,
-		buttonLabel: translations.export,
-	});
-	if (!canceled && filePath) {
-		dispatch(setExportInProgress());
-		// Sort and convert entries to the specified format, then write them to disk
-		const { entries } = getState().file;
-		converterFunc(entries)
-			.then(entriesConverted => {
-				writeFile(filePath, entriesConverted);
-				dispatch(setExportSuccess());
-			})
-			.catch(err => {
-				logger.error("Error exporting diary file: ", err);
-				dispatch(setExportError(err.toString()));
-			});
+	const filePath = await window.miniDiary.dialogs.selectExportPath(
+		`mini-diary-export.${fileExtensions[exportFormat]}`,
+		translations.export,
+	);
+	if (!filePath) {
+		return;
+	}
+	dispatch(setExportInProgress());
+	try {
+		const content = await converterFunc(getState().file.entries);
+		await window.miniDiary.diary.writeExport(filePath, content);
+		dispatch(setExportSuccess());
+	} catch (error) {
+		logger.error("Error exporting diary file: ", error);
+		dispatch(setExportError(error.toString()));
 	}
 };
 
@@ -84,8 +77,23 @@ export const exportToMd = (): ThunkActionT => (dispatch): void => {
 	dispatch(exportToFile(convertToMd, "md"));
 };
 
-export const exportToPdf = (): ThunkActionT => (dispatch): void => {
-	dispatch(exportToFile(convertToPdf, "pdf"));
+export const exportToPdf = (): ThunkActionT => async (dispatch, getState): Promise<void> => {
+	const filePath = await window.miniDiary.dialogs.selectExportPath(
+		`mini-diary-export.${fileExtensions.pdf}`,
+		translations.export,
+	);
+	if (!filePath) {
+		return;
+	}
+	dispatch(setExportInProgress());
+	try {
+		const markdown = await convertToMd(getState().file.entries);
+		await window.miniDiary.diary.writePdfExport(filePath, markdown);
+		dispatch(setExportSuccess());
+	} catch (error) {
+		logger.error("Error exporting diary file: ", error);
+		dispatch(setExportError(error.toString()));
+	}
 };
 
 export const exportToTxtDayOne = (): ThunkActionT => (dispatch): void => {

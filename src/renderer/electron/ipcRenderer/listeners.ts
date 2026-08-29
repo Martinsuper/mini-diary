@@ -1,7 +1,3 @@
-import { ipcRenderer, remote } from "electron";
-
-import { darkMode, is } from "electron-util";
-
 import { OverlayType } from "../../../shared/types";
 import { openOverlay, setTheme } from "../../store/app/actionCreators";
 import {
@@ -24,93 +20,61 @@ import store, { ThunkDispatchT } from "../../store/store";
 const dispatchThunk = store.dispatch as ThunkDispatchT;
 
 export default function initIpcListeners(): void {
-	// Date
-
-	ipcRenderer.on("nextDay", (): void => {
-		dispatchThunk(setDaySelectedNext());
+	window.miniDiary.events.onMenu((event, overlay): void => {
+		switch (event) {
+			case "nextDay":
+				dispatchThunk(setDaySelectedNext());
+				break;
+			case "previousDay":
+				dispatchThunk(setDaySelectedPrevious());
+				break;
+			case "goToToday":
+				dispatchThunk(setDaySelectedToday());
+				break;
+			case "nextMonth":
+				dispatchThunk(setMonthSelectedNext());
+				break;
+			case "previousMonth":
+				dispatchThunk(setMonthSelectedPrevious());
+				break;
+			case "exportJsonMiniDiary":
+				dispatchThunk(exportToJsonMiniDiary());
+				break;
+			case "exportMd":
+				dispatchThunk(exportToMd());
+				break;
+			case "exportPdf":
+				dispatchThunk(exportToPdf());
+				break;
+			case "exportTxtDayOne":
+				dispatchThunk(exportToTxtDayOne());
+				break;
+			case "importJsonDayOne":
+				dispatchThunk(setImportFormat("jsonDayOne"));
+				dispatchThunk(openOverlay("import"));
+				break;
+			case "importJsonJrnl":
+				dispatchThunk(setImportFormat("jsonJrnl"));
+				dispatchThunk(openOverlay("import"));
+				break;
+			case "importJsonMiniDiary":
+				dispatchThunk(setImportFormat("jsonMiniDiary"));
+				dispatchThunk(openOverlay("import"));
+				break;
+			case "importTxtDayOne":
+				dispatchThunk(setImportFormat("txtDayOne"));
+				dispatchThunk(openOverlay("import"));
+				break;
+			case "lock":
+				dispatchThunk(lock());
+				break;
+			default:
+				if (overlay) {
+					dispatchThunk(openOverlay(overlay as OverlayType));
+				}
+		}
 	});
-
-	ipcRenderer.on("previousDay", (): void => {
-		dispatchThunk(setDaySelectedPrevious());
-	});
-
-	ipcRenderer.on("goToToday", (): void => {
-		dispatchThunk(setDaySelectedToday());
-	});
-
-	ipcRenderer.on("nextMonth", (): void => {
-		dispatchThunk(setMonthSelectedNext());
-	});
-
-	ipcRenderer.on("previousMonth", (): void => {
-		dispatchThunk(setMonthSelectedPrevious());
-	});
-
-	// Export
-
-	ipcRenderer.on("exportJsonMiniDiary", (): void => {
-		dispatchThunk(exportToJsonMiniDiary());
-	});
-
-	ipcRenderer.on("exportMd", (): void => {
-		dispatchThunk(exportToMd());
-	});
-
-	ipcRenderer.on("exportPdf", (): void => {
-		dispatchThunk(exportToPdf());
-	});
-
-	ipcRenderer.on("exportTxtDayOne", (): void => {
-		dispatchThunk(exportToTxtDayOne());
-	});
-
-	// Import
-
-	ipcRenderer.on("importJsonDayOne", (): void => {
-		dispatchThunk(setImportFormat("jsonDayOne"));
-		dispatchThunk(openOverlay("import"));
-	});
-
-	ipcRenderer.on("importJsonJrnl", (): void => {
-		dispatchThunk(setImportFormat("jsonJrnl"));
-		dispatchThunk(openOverlay("import"));
-	});
-
-	ipcRenderer.on("importJsonMiniDiary", (): void => {
-		dispatchThunk(setImportFormat("jsonMiniDiary"));
-		dispatchThunk(openOverlay("import"));
-	});
-
-	ipcRenderer.on("importTxtDayOne", (): void => {
-		dispatchThunk(setImportFormat("txtDayOne"));
-		dispatchThunk(openOverlay("import"));
-	});
-
-	// Lock
-
-	ipcRenderer.on("lock", (): void => {
-		dispatchThunk(lock());
-	});
-
-	// Overlays
-
-	ipcRenderer.on("openOverlay", (_, overlayType: OverlayType): void => {
-		dispatchThunk(openOverlay(overlayType));
-	});
-
-	// Screen lock
-	// Lock diary when screen is locked
-
-	if (is.macos || is.windows) {
-		remote.powerMonitor.on("lock-screen", (): void => {
-			dispatchThunk(lock());
-		});
-	}
-
-	// Theme
-	// Listen to system theme changes and update the app theme accordingly
-
-	darkMode.onChange((): void => {
-		dispatchThunk(setTheme(darkMode.isEnabled ? "dark" : "light"));
+	window.miniDiary.events.onThemeChange((theme): void => {
+		dispatchThunk(setTheme(theme));
 	});
 }

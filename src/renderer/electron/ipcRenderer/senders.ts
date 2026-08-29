@@ -1,30 +1,20 @@
-import { ipcRenderer } from "electron";
-
 import { Translations } from "../../../shared/types";
 
-// Localization
-
 export function getLang(): string {
-	return ipcRenderer.sendSync("getLang");
+	return window.miniDiary.app.getLang();
 }
 
 export function getTranslation(
 	i18nKey: keyof Translations,
 	substitutions: Record<string, string>,
 ): string {
-	return ipcRenderer.sendSync("getTranslation", i18nKey, substitutions);
+	return window.miniDiary.app.getTranslation(i18nKey, substitutions);
 }
 
 export function getTranslations(): Record<string, string> {
-	return ipcRenderer.sendSync("getTranslations");
+	return window.miniDiary.app.getTranslations();
 }
 
-// Menu items
+export function disableMenuItems(): void {}
 
-export function disableMenuItems(): void {
-	ipcRenderer.send("disableMenuItems");
-}
-
-export function enableMenuItems(): void {
-	ipcRenderer.send("enableMenuItems");
-}
+export function enableMenuItems(): void {}

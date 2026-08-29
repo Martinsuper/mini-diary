@@ -1,5 +1,3 @@
-import { remote } from "electron";
-
 import React, { Component, ReactNode } from "react";
 
 import { OverlayType } from "../../shared/types";
@@ -84,7 +82,7 @@ export default class App extends Component<Props, State> {
 
 		// Check for export error and display it if there is one
 		if (exportErrorMsg && exportErrorMsg !== prevProps.exportErrorMsg) {
-			remote.dialog.showErrorBox(
+			void window.miniDiary.dialogs.showError(
 				translations["export-error-title"],
 				`${translations["export-error-msg"]}: ${exportErrorMsg}`,
 			);
@@ -92,7 +90,7 @@ export default class App extends Component<Props, State> {
 
 		// Check for import error and display it if there is one
 		if (importErrorMsg && importErrorMsg !== prevProps.importErrorMsg) {
-			remote.dialog.showErrorBox(
+			void window.miniDiary.dialogs.showError(
 				translations["import-error-title"],
 				`${translations["import-error-msg"]}: ${importErrorMsg}`,
 			);
