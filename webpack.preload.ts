@@ -8,9 +8,9 @@ export default (
 	args: CliConfigOptions,
 ): Configuration =>
 	merge(base(env, args), {
-		entry: "./src/main/main.ts",
+		entry: "./src/preload/preload.ts",
 		output: {
-			filename: "main.js",
+			filename: "preload.js",
 		},
-		target: "electron-main",
+		target: "electron-preload",
 	});

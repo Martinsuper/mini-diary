@@ -1,6 +1,6 @@
 import HtmlWebpackPlugin from "html-webpack-plugin";
 import { CliConfigOptions, Configuration } from "webpack";
-import merge from "webpack-merge";
+import { merge } from "webpack-merge";
 
 import pkg from "./package.json";
 import base from "./webpack.base";
@@ -9,12 +9,8 @@ export default (
 	env: string | Record<string, boolean | number | string>,
 	args: CliConfigOptions,
 ): Configuration =>
-	// @ts-ignore
 	merge(base(env, args), {
 		entry: "./src/renderer/renderer.tsx",
-		output: {
-			filename: "renderer.js",
-		},
 		module: {
 			rules: [
 				{
@@ -25,28 +21,29 @@ export default (
 					test: /\.svg$/,
 					use: {
 						loader: "@svgr/webpack",
-						options: {
-							titleProp: true,
-							svgoConfig: {
-								plugins: [
-									{
-										removeViewBox: false,
-									},
-								],
-							},
-						},
+						options: { titleProp: true },
 					},
 				},
 				{
 					test: /\.(png|jpe?g|gif)$/i,
-					use: "file-loader",
+					type: "asset/resource",
 				},
 			],
 		},
+		output: {
+			filename: "renderer.js",
+		},
 		plugins: [
-			new HtmlWebpackPlugin({
-				title: pkg.productName,
-			}),
+			new HtmlWebpackPlugin({ title: pkg.productName }),
 		],
-		target: "electron-renderer",
+		resolve: {
+			fallback: {
+				assert: false,
+				buffer: false,
+				crypto: false,
+				fs: false,
+				path: false,
+			},
+		},
+		target: "web",
 	});

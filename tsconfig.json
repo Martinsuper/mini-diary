@@ -1,3 +1,16 @@
 {
-	"extends": "@samuelmeuli/tsconfig"
+	"compilerOptions": {
+		"esModuleInterop": true,
+		"forceConsistentCasingInFileNames": true,
+		"module": "commonjs",
+		"moduleResolution": "node",
+		"noEmit": true,
+		"noUnusedLocals": true,
+		"noUnusedParameters": true,
+		"resolveJsonModule": true,
+		"skipLibCheck": true,
+		"strict": true,
+		"target": "ES2022"
+	},
+	"include": ["src/**/*.ts", "src/**/*.tsx", "webpack.*.ts", "test/**/*.ts"]
 }

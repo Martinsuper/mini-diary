@@ -9,32 +9,32 @@ export default (
 ): Configuration => {
 	const configName = args.config?.split(".")[2];
 	return {
-		output: {
-			path: path.resolve(__dirname, "bundle"),
-		},
 		devtool: args.mode === "production" ? false : "source-map",
-		resolve: {
-			extensions: [".js", ".jsx", ".json", ".ts", ".tsx"],
-		},
+		mode: args.mode === "production" ? "production" : "development",
 		module: {
 			rules: [
 				{
-					test: [/\.jsx?$/, /\.tsx?$/],
-					use: "babel-loader",
 					exclude: /node_modules/,
+					test: /\.[jt]sx?$/,
+					use: "babel-loader",
 				},
 			],
 		},
-		// @ts-ignore
-		plugins: [
-			...(args.mode === "production"
+		output: {
+			clean: false,
+			path: path.resolve(__dirname, "bundle"),
+		},
+		plugins:
+			args.mode === "production"
 				? [
 						new LicenseCheckerWebpackPlugin({
 							allow: "(Apache-2.0 OR BSD-2-Clause OR BSD-3-Clause OR ISC OR MIT OR Zlib)",
 							outputFilename: `licenses-${configName}.txt`,
 						}),
 				  ]
-				: []),
-		],
+				: [],
+		resolve: {
+			extensions: [".js", ".jsx", ".json", ".ts", ".tsx"],
+		},
 	};
 };

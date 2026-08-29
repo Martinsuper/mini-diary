@@ -19,12 +19,14 @@
 		"start:ts": "run-p start:ts:*",
 		"start:ts:main": "webpack --config ./webpack.main.ts --mode development --watch",
 		"start:ts:renderer": "webpack --config ./webpack.renderer.ts --mode development --watch",
+		"start:ts:preload": "webpack --config ./webpack.preload.ts --mode development --watch",
 		"start:app": "electron .",
 		"build": "run-s build:*",
 		"build:clean": "rm -rf ./bundle ./dist",
 		"build:ts": "run-p build:ts:*",
 		"build:ts:main": "webpack --config ./webpack.main.ts --mode production",
 		"build:ts:renderer": "webpack --config ./webpack.renderer.ts --mode production",
+		"build:ts:preload": "webpack --config ./webpack.preload.ts --mode production",
 		"website:start": "npm-run-all website:build:css --parallel website:start:*",
 		"website:start:serve": "serve ./website --listen 3000",
 		"website:start:ts": "tsc --project ./website --watch",
@@ -101,10 +103,10 @@
 		"@types/webpack-merge": "^4.1.5",
 		"@typescript-eslint/eslint-plugin": "^2.34.0",
 		"@typescript-eslint/parser": "^2.34.0",
-		"babel-loader": "^8.1.0",
-		"css-loader": "^3.5.3",
-		"electron": "^8.3.0",
-		"electron-builder": "22.4.1",
+		"babel-loader": "^10.0.0",
+		"css-loader": "^7.1.2",
+		"electron": "^35.0.0",
+		"electron-builder": "^26.0.12",
 		"electron-builder-notarize": "^1.1.1",
 		"eslint": "6.8.0",
 		"eslint-config-airbnb": "18.1.0",
@@ -114,22 +116,22 @@
 		"eslint-plugin-react": "^7.20.0",
 		"eslint-plugin-react-hooks": "^2.5.1",
 		"file-loader": "^6.0.0",
-		"html-webpack-plugin": "^4.3.0",
+		"html-webpack-plugin": "^5.6.3",
 		"jest": "^26.0.1",
 		"license-checker-webpack-plugin": "^0.1.4",
 		"mockdate": "^3.0.2",
 		"npm-run-all": "^4.1.3",
 		"prettier": "^1.18.2",
 		"sass": "^1.26.7",
-		"sass-loader": "^8.0.0",
+		"sass-loader": "^16.0.5",
 		"serve": "^11.3.1",
-		"style-loader": "^1.2.1",
+		"style-loader": "^4.0.0",
 		"stylelint": "^12.0.1",
 		"ts-node": "^8.10.2",
-		"typescript": "^3.9.3",
-		"webpack": "^4.43.0",
-		"webpack-cli": "^3.3.11",
-		"webpack-merge": "^4.2.2"
+		"typescript": "^5.8.2",
+		"webpack": "^5.98.0",
+		"webpack-cli": "^6.0.1",
+		"webpack-merge": "^6.0.1"
 	},
 	"browserslist": [
 		"electron 8.0"
@@ -250,7 +252,11 @@
 			"hardenedRuntime": false
 		},
 		"linux": {
-			"category": "Utility"
+			"category": "Utility",
+			"target": ["AppImage", "deb"]
+		},
+		"win": {
+			"target": ["nsis"]
 		},
 		"dmg": {
 			"icon": false
