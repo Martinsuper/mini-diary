@@ -5,6 +5,7 @@ import contextMenu from "electron-context-menu";
 import electronDebug from "electron-debug";
 
 import { initLogger } from "../shared/logger";
+import DiaryService from "./services/diaryService";
 import { initI18n } from "./i18n/i18n";
 import initIpcListeners from "./ipcMain/listeners";
 import { buildMenu } from "./menu/menu";
@@ -13,6 +14,8 @@ import { getWindow, setWindow } from "./window";
 
 initLogger();
 electronDebug();
+const diaryService = new DiaryService();
+
 contextMenu({
 	showCopyImage: false,
 	showSearchWithGoogle: false,
@@ -27,7 +30,10 @@ async function createWindow(): Promise<BrowserWindow> {
 		show: false,
 		titleBarStyle: "hiddenInset",
 		webPreferences: {
-			nodeIntegration: true,
+			contextIsolation: true,
+			nodeIntegration: false,
+			preload: path.join(__dirname, "preload.js"),
+			sandbox: true,
 			spellcheck: true,
 		},
 	});
@@ -68,7 +74,7 @@ app.on(
 	// Set up translations, messaging between main and renderer processes, and application menu
 	initI18n();
 	buildMenu();
-	initIpcListeners();
+	initIpcListeners(diaryService);
 
 	// Create and show BrowserWindow
 	setWindow(await createWindow());
