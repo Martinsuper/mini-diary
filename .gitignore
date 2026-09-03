@@ -13,6 +13,10 @@ dist/
 # Apple provisioning profile
 *.provisionprofile
 
+# Playwright reports
+playwright-report/
+test-results/
+
 # Generated website assets
 website/index.js
 website/index.js.map

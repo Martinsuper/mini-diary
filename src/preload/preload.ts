@@ -1,41 +1,54 @@
 import { contextBridge, ipcRenderer } from "electron";
 
-import { IPC, MiniDiaryApi, RendererEvent } from "../shared/ipc";
+import { IPC, MenuEvent, MiniDiaryApi } from "../shared/ipc";
+
+function subscribe<T>(channel: string, listener: (value: T) => void): () => void {
+	const wrapped = (_: Electron.IpcRendererEvent, value: T): void => listener(value);
+	ipcRenderer.on(channel, wrapped);
+	return (): void => {
+		ipcRenderer.removeListener(channel, wrapped);
+	};
+}
 
 const api: MiniDiaryApi = {
 	app: {
-		getInfo: () => ipcRenderer.invoke(IPC.app.getInfo),
-		getTranslations: () => ipcRenderer.invoke(IPC.app.getTranslations),
-		on: (event: RendererEvent, listener: () => void): (() => void) => {
-			const wrapped = (): void => listener();
-			ipcRenderer.on(event, wrapped);
-			return (): void => ipcRenderer.removeListener(event, wrapped);
-		},
-		toggleWindowSize: () => ipcRenderer.invoke(IPC.app.toggleWindowSize),
+		bootstrap: () => ipcRenderer.invoke(IPC.app.bootstrap),
+		toggleWindowSize: (): Promise<void> => ipcRenderer.invoke(IPC.app.toggleWindowSize),
+	},
+	dialogs: {
+		confirmReset: (title, message, confirm, cancel) => ipcRenderer.invoke(IPC.dialogs.confirmReset, title, message, confirm, cancel),
+		exportFile: (defaultName, buttonLabel, content) => ipcRenderer.invoke(IPC.dialogs.exportFile, defaultName, buttonLabel, content),
+		exportPdf: (defaultName, buttonLabel, markdown) => ipcRenderer.invoke(IPC.dialogs.exportPdf, defaultName, buttonLabel, markdown),
+		importFile: extension => ipcRenderer.invoke(IPC.dialogs.importFile, extension),
+		selectDirectory: buttonLabel => ipcRenderer.invoke(IPC.dialogs.selectDirectory, buttonLabel),
+		showError: (title, message) => ipcRenderer.invoke(IPC.dialogs.showError, title, message),
 	},
 	diary: {
 		create: password => ipcRenderer.invoke(IPC.diary.create, password),
 		fileExists: () => ipcRenderer.invoke(IPC.diary.fileExists),
+		getPath: () => ipcRenderer.invoke(IPC.diary.getPath),
 		lock: () => ipcRenderer.invoke(IPC.diary.lock),
+		move: directory => ipcRenderer.invoke(IPC.diary.move, directory),
 		read: password => ipcRenderer.invoke(IPC.diary.read, password),
 		reset: () => ipcRenderer.invoke(IPC.diary.reset),
-		save: entries => ipcRenderer.invoke(IPC.diary.save, entries),
+		save: update => ipcRenderer.invoke(IPC.diary.save, update),
+		replaceEntries: entries => ipcRenderer.invoke(IPC.diary.replaceEntries, entries),
+		setDirectory: directory => ipcRenderer.invoke(IPC.diary.setDirectory, directory),
 		updatePassword: (password, entries) => ipcRenderer.invoke(IPC.diary.updatePassword, password, entries),
 	},
-	dialog: {
-		confirmReset: () => ipcRenderer.invoke(IPC.dialog.confirmReset),
-		selectDirectory: () => ipcRenderer.invoke(IPC.dialog.selectDirectory),
-		selectExportPath: extension => ipcRenderer.invoke(IPC.dialog.selectExportPath, extension),
-		selectImportFile: extensions => ipcRenderer.invoke(IPC.dialog.selectImportFile, extensions),
-		showError: (title, message) => ipcRenderer.invoke(IPC.dialog.showError, title, message),
-	},
-	files: {
-		moveDiary: directory => ipcRenderer.invoke(IPC.files.moveDiary, directory),
-		readText: filePath => ipcRenderer.invoke(IPC.files.readText, filePath),
-		writeExport: (filePath, content) => ipcRenderer.invoke(IPC.files.writeExport, filePath, content),
+	events: {
+		onMenu: listener => {
+			const channels: MenuEvent[] = [
+				"nextDay", "previousDay", "goToToday", "nextMonth", "previousMonth",
+				"exportJsonMiniDiary", "exportMd", "exportPdf", "exportTxtDayOne",
+				"importJsonDayOne", "importJsonJrnl", "importJsonMiniDiary", "importTxtDayOne", "lock",
+			];
+			const subscriptions = channels.map(channel => subscribe(channel, (): void => listener(channel)));
+			return (): void => subscriptions.forEach(unsubscribe => unsubscribe());
+		},
+		onThemeChange: listener => subscribe("theme-change", listener),
 	},
 	preferences: {
-		get: () => ipcRenderer.invoke(IPC.preferences.get),
 		set: (key, value) => ipcRenderer.invoke(IPC.preferences.set, key, value),
 	},
 };

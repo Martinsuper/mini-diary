@@ -1,5 +1,7 @@
+import path from "path";
+
 import HtmlWebpackPlugin from "html-webpack-plugin";
-import { CliConfigOptions, Configuration } from "webpack";
+import { Configuration } from "webpack";
 import { merge } from "webpack-merge";
 
 import pkg from "./package.json";
@@ -7,7 +9,7 @@ import base from "./webpack.base";
 
 export default (
 	env: string | Record<string, boolean | number | string>,
-	args: CliConfigOptions,
+	args: { mode?: string },
 ): Configuration =>
 	merge(base(env, args), {
 		entry: "./src/renderer/renderer.tsx",
@@ -34,9 +36,20 @@ export default (
 			filename: "renderer.js",
 		},
 		plugins: [
-			new HtmlWebpackPlugin({ title: pkg.productName }),
+			new HtmlWebpackPlugin({
+					title: pkg.productName,
+					meta: {
+						"Content-Security-Policy": {
+							"http-equiv": "Content-Security-Policy",
+							content: "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self' data:",
+						},
+					},
+				}),
 		],
 		resolve: {
+			alias: {
+				"moment-timezone$": path.resolve(__dirname, "node_modules/moment-timezone/builds/moment-timezone-with-data-10-year-range.js"),
+			},
 			fallback: {
 				assert: false,
 				buffer: false,

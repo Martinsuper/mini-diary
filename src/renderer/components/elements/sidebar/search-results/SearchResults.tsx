@@ -22,25 +22,18 @@ export default class SearchResults extends PureComponent<Props, {}> {
 	constructor(props: Props) {
 		super(props);
 
-		// Function bindings
 		this.generateSearchResults = this.generateSearchResults.bind(this);
 	}
 
-	/**
-	 * Generate list of search result elements
-	 */
 	generateSearchResults(): ReactNode[] {
 		const { dateSelected, entries, searchResults, setDateSelected } = this.props;
 
-		return searchResults.reduce((r: ReactNode[], searchResult): ReactNode[] => {
+		return searchResults.reduce((results: ReactNode[], searchResult): ReactNode[] => {
 			if (searchResult in entries) {
-				// Create search result element if a corresponding diary entry exists
-				// (When deleting a diary entry after a search, it is still part of the search results
-				// until a new search is performed. That's why it needs to be filtered out here)
 				const date = fromIndexDate(searchResult);
 				const { title } = entries[searchResult];
 				const isSelected = date.isSame(dateSelected, "day");
-				r.push(
+				results.push(
 					<li key={searchResult} className="search-result">
 						<button
 							type="button"
@@ -55,20 +48,22 @@ export default class SearchResults extends PureComponent<Props, {}> {
 					</li>,
 				);
 			}
-			return r;
+			return results;
 		}, []);
 	}
 
 	render(): ReactNode {
 		const searchResultsEl = this.generateSearchResults();
 		return (
-			<ul className="search-results">
+			<ul aria-live="polite" aria-label={`${searchResultsEl.length} ${translations.search}`} className="search-results">
 				{searchResultsEl.length === 0 ? (
-					<Banner
-						bannerType="info"
-						message={translations["no-results"]}
-						className="banner-no-results"
-					/>
+					<li>
+						<Banner
+							bannerType="info"
+							message={translations["no-results"]}
+							className="banner-no-results"
+						/>
+					</li>
 				) : (
 					searchResultsEl
 				)}

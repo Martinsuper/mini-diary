@@ -1,5 +1,3 @@
-import logger from "electron-log";
-
 import { convertToMiniDiaryJson } from "../../files/export/json";
 import { convertToMd } from "../../files/export/md";
 import { convertToDayOneTxt } from "../../files/export/txt";
@@ -22,49 +20,33 @@ const fileExtensions: Record<ExportFormat, string> = {
 	txtDayOne: "txt",
 };
 
-// Action creators
-
 function setExportInProgress(): SetExportInProgressAction {
-	return {
-		type: EXPORT_IN_PROGRESS,
-	};
+	return { type: EXPORT_IN_PROGRESS };
 }
 
 function setExportError(exportErrorMsg: string): SetExportErrorAction {
-	return {
-		type: EXPORT_ERROR,
-		payload: {
-			exportErrorMsg,
-		},
-	};
+	return { type: EXPORT_ERROR, payload: { exportErrorMsg } };
 }
 
 function setExportSuccess(): SetExportSuccessAction {
-	return {
-		type: EXPORT_SUCCESS,
-	};
+	return { type: EXPORT_SUCCESS };
 }
-
-// Thunks
 
 const exportToFile = (
 	converterFunc: (entries: Entries) => Promise<string>,
 	exportFormat: Exclude<ExportFormat, "pdf">,
 ): ThunkActionT => async (dispatch, getState): Promise<void> => {
-	const filePath = await window.miniDiary.dialogs.selectExportPath(
-		`mini-diary-export.${fileExtensions[exportFormat]}`,
-		translations.export,
-	);
-	if (!filePath) {
-		return;
-	}
 	dispatch(setExportInProgress());
 	try {
 		const content = await converterFunc(getState().file.entries);
-		await window.miniDiary.diary.writeExport(filePath, content);
+		await window.miniDiary.dialogs.exportFile(
+			`mini-diary-export.${fileExtensions[exportFormat]}`,
+			translations.export,
+			content,
+		);
 		dispatch(setExportSuccess());
 	} catch (error) {
-		logger.error("Error exporting diary file: ", error);
+		console.error("Error exporting diary file: ", error);
 		dispatch(setExportError(error.toString()));
 	}
 };
@@ -78,20 +60,17 @@ export const exportToMd = (): ThunkActionT => (dispatch): void => {
 };
 
 export const exportToPdf = (): ThunkActionT => async (dispatch, getState): Promise<void> => {
-	const filePath = await window.miniDiary.dialogs.selectExportPath(
-		`mini-diary-export.${fileExtensions.pdf}`,
-		translations.export,
-	);
-	if (!filePath) {
-		return;
-	}
 	dispatch(setExportInProgress());
 	try {
 		const markdown = await convertToMd(getState().file.entries);
-		await window.miniDiary.diary.writePdfExport(filePath, markdown);
+		await window.miniDiary.dialogs.exportPdf(
+			`mini-diary-export.${fileExtensions.pdf}`,
+			translations.export,
+			markdown,
+		);
 		dispatch(setExportSuccess());
 	} catch (error) {
-		logger.error("Error exporting diary file: ", error);
+		console.error("Error exporting diary file: ", error);
 		dispatch(setExportError(error.toString()));
 	}
 };

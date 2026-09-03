@@ -1,19 +1,23 @@
 import moment from "moment-timezone";
 
 import { Translations } from "../../shared/types";
-import { getLang, getTranslation, getTranslations } from "../electron/ipcRenderer/senders";
+import { getBootstrap } from "../bootstrap";
 
-export const lang = getLang();
-export const translations = getTranslations();
+const bootstrap = getBootstrap();
+
+export const lang = bootstrap.lang;
+export const translations = bootstrap.translations as unknown as Translations;
 
 export function initI18n(): void {
-	// Set moment.js language
 	moment.locale(lang);
 }
 
 export function translate(
 	i18nKey: keyof Translations,
-	substitutions: Record<string, string>,
+	substitutions: Record<string, string> = {},
 ): string {
-	return getTranslation(i18nKey, substitutions);
+	return Object.entries(substitutions).reduce(
+		(translation, [key, replacement]) => translation.replace(new RegExp(`{${key}}`, "g"), replacement),
+		translations[i18nKey],
+	);
 }

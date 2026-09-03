@@ -1,0 +1,476 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Mini Diary · macOS 视觉升级</title>
+  <style>
+    :root {
+      --bg: oklch(97.55% 0.0045 258.3);
+      --surface: oklch(100% 0 0);
+      --fg: oklch(31.29% 0.0038 264.5);
+      --muted: oklch(49.57% 0.0068 264.5);
+      --border: oklch(90.34% 0.0101 267.4);
+      --accent: oklch(68.98% 0.1679 252.2);
+      --body: "Helvetica Neue", Helvetica, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "微软雅黑", Arial, sans-serif;
+      --mono: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+      --red: oklch(64% .21 28);
+      --yellow: oklch(82% .16 85);
+      --green: oklch(70% .17 145);
+    }
+
+    .stage[data-theme="light"] {
+      --bg: oklch(97.55% 0.0045 258.3);
+      --surface: oklch(100% 0 0);
+      --fg: oklch(31.29% 0.0038 264.5);
+      --muted: oklch(49.57% 0.0068 264.5);
+      --border: oklch(90.34% 0.0101 267.4);
+    }
+    @media (prefers-color-scheme: light) {
+      .stage[data-theme="system"] {
+        --bg: oklch(97.55% 0.0045 258.3);
+        --surface: oklch(100% 0 0);
+        --fg: oklch(31.29% 0.0038 264.5);
+        --muted: oklch(49.57% 0.0068 264.5);
+        --border: oklch(90.34% 0.0101 267.4);
+      }
+    }
+
+    * { box-sizing: border-box; }
+    html { min-width: 320px; background: var(--bg); }
+    body { min-width: 320px; min-height: 100vh; margin: 0; color: var(--fg); background: var(--bg); font-family: var(--body); -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; }
+    button, input { font: inherit; }
+    button { color: inherit; }
+    button:focus-visible, input:focus-visible, [contenteditable="true"]:focus-visible { outline: 3px solid oklch(from var(--accent) l c h / .72); outline-offset: 2px; }
+    .icon { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; stroke-width: 1.8; }
+    .visually-hidden { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+    .stage { min-height: 100vh; display: grid; place-items: center; padding: clamp(16px, 3vw, 48px); background: var(--bg); transition: background .22s ease; }
+    .window { width: min(1360px, 100%); height: min(840px, calc(100vh - 32px)); min-height: 620px; display: grid; grid-template-rows: 48px minmax(0, 1fr); overflow: hidden; border: 1px solid oklch(100% 0 0 / .15); border-radius: 20px; background: oklch(from var(--bg) calc(l + .012) c h); box-shadow: 0 30px 96px oklch(0% 0 0 / .42), 0 1px 0 oklch(100% 0 0 / .07) inset; }
+    .titlebar { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; padding: 0 18px; border-bottom: 1px solid oklch(100% 0 0 / .09); background: oklch(from var(--bg) calc(l + .032) c h / .88); box-shadow: 0 1px 0 oklch(100% 0 0 / .04) inset; backdrop-filter: blur(24px) saturate(140%); }
+    .traffic-lights { display: flex; align-items: center; gap: 8px; }
+    .traffic-light { position: relative; width: 12px; height: 12px; padding: 0; border: 0; border-radius: 50%; box-shadow: 0 0 0 1px oklch(0% 0 0 / .16) inset, 0 1px 1px oklch(100% 0 0 / .12) inset; }
+    .traffic-light::after { position: absolute; inset: 0; display: grid; place-items: center; color: oklch(18% .01 280 / .72); font-family: var(--body); font-size: 9px; font-weight: 800; line-height: 1; opacity: 0; transition: opacity .16s ease; }
+    .traffic-light.close::after { content: "×"; }
+    .traffic-light.minimize::after { content: "–"; }
+    .traffic-light.zoom::after { content: "+"; }
+    .traffic-light.close { background: var(--red); }
+    .traffic-light.minimize { background: var(--yellow); }
+    .traffic-light.zoom { background: var(--green); }
+    .window-title { color: var(--muted); font-size: 12px; font-weight: 550; letter-spacing: -.01em; }
+    .title-actions { position: relative; z-index: 4; display: flex; justify-content: flex-end; gap: 4px; }
+    .chrome-button, .tool-button, .month-button { display: inline-grid; place-items: center; border: 1px solid transparent; color: var(--muted); background: transparent; cursor: pointer; transition: color .18s ease, border-color .18s ease, background .18s ease, transform .18s ease; }
+    .chrome-button { width: 30px; height: 30px; border-radius: 8px; }
+    .chrome-button:hover, .tool-button:hover, .month-button:hover { color: var(--fg); border-color: oklch(100% 0 0 / .14); background: oklch(100% 0 0 / .08); }
+    .chrome-button:active, .tool-button:active, .month-button:active { transform: scale(.95); background: oklch(100% 0 0 / .13); }
+    .settings-popover { position: absolute; top: 39px; right: 0; width: 282px; padding: 12px; border: 1px solid oklch(100% 0 0 / .16); border-radius: 13px; color: var(--fg); background: oklch(from var(--surface) l c h / .92); box-shadow: 0 18px 42px oklch(0% 0 0 / .28), 0 1px 0 oklch(100% 0 0 / .08) inset; backdrop-filter: blur(24px) saturate(150%); }
+    .settings-popover[hidden] { display: none; }
+    .settings-popover-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; padding: 3px 3px 11px; }
+    .settings-popover-head h2 { margin: 0; color: var(--fg); font-size: 13px; font-weight: 700; letter-spacing: -.02em; }
+    .settings-popover-head p { margin: 3px 0 0; color: var(--muted); font-size: 10px; }
+    .settings-close { width: 26px; height: 26px; display: grid; place-items: center; padding: 0; border: 1px solid transparent; border-radius: 7px; color: var(--muted); background: transparent; cursor: pointer; }
+    .settings-close:hover { color: var(--fg); border-color: oklch(100% 0 0 / .14); background: oklch(100% 0 0 / .09); }
+    .theme-options { display: grid; gap: 4px; }
+    .theme-option { width: 100%; min-height: 50px; display: grid; grid-template-columns: 40px minmax(0, 1fr) 17px; align-items: center; gap: 9px; padding: 6px; border: 1px solid transparent; border-radius: 9px; color: var(--fg); background: transparent; cursor: pointer; text-align: left; transition: background .18s ease, border-color .18s ease; }
+    .theme-option:hover { border-color: oklch(100% 0 0 / .14); background: oklch(100% 0 0 / .07); }
+    .theme-option[aria-checked="true"] { border-color: oklch(from var(--accent) l c h / .5); background: oklch(from var(--accent) l c h / .14); }
+    .theme-option b, .theme-option small { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .theme-option b { font-size: 12px; font-weight: 650; }
+    .theme-option small { margin-top: 2px; color: var(--muted); font-size: 10px; }
+    .theme-option .check { display: grid; place-items: center; color: var(--accent); font-size: 14px; font-weight: 800; opacity: 0; }
+    .theme-option[aria-checked="true"] .check { opacity: 1; }
+    .theme-preview { width: 38px; height: 30px; display: grid; grid-template-columns: 10px 1fr; overflow: hidden; border: 1px solid oklch(100% 0 0 / .15); border-radius: 6px; background: oklch(26% .006 301); box-shadow: 0 1px 0 oklch(100% 0 0 / .07) inset; }
+    .theme-preview::before { content: ""; background: oklch(30% .005 286); }
+    .theme-preview::after { content: ""; margin: 5px; border-radius: 2px; background: oklch(43% .005 286); }
+    .theme-preview.light { border-color: oklch(0% 0 0 / .14); background: oklch(91% 0 90); }
+    .theme-preview.light::before { background: oklch(86% 0 90); }
+    .theme-preview.light::after { background: oklch(99% 0 90); }
+    .theme-preview.system { background: linear-gradient(90deg, oklch(27% .006 301) 0 50%, oklch(93% 0 90) 50% 100%); }
+    .theme-preview.system::before { background: oklch(35% .005 286); }
+    .theme-preview.system::after { background: oklch(97% 0 90); }
+
+    .diary { min-height: 0; display: grid; grid-template-columns: 320px minmax(0, 1fr); }
+    .sidebar { min-width: 0; min-height: 0; display: flex; flex-direction: column; padding: 28px 25px 24px; border-right: 1px solid oklch(100% 0 0 / .09); background: oklch(from var(--bg) calc(l + .026) c h / .82); backdrop-filter: blur(18px) saturate(115%); }
+    .search-wrap { position: relative; margin-bottom: clamp(28px, 5vh, 62px); }
+    .search-wrap .icon { position: absolute; top: 50%; left: 13px; color: var(--muted); pointer-events: none; transform: translateY(-50%); }
+    .search { width: 100%; height: 42px; padding: 0 38px 0 40px; border: 1px solid oklch(100% 0 0 / .11); border-radius: 11px; outline: 0; color: var(--fg); background: oklch(0% 0 0 / .12); box-shadow: 0 1px 1px oklch(0% 0 0 / .18) inset, 0 1px 0 oklch(100% 0 0 / .035); font-size: 14px; transition: background .18s ease, border-color .18s ease, box-shadow .18s ease; }
+    .search::placeholder { color: oklch(from var(--muted) l c h / .78); }
+    .search:hover { background: oklch(0% 0 0 / .18); }
+    .search:focus { border-color: oklch(from var(--accent) l c h / .72); background: oklch(0% 0 0 / .2); box-shadow: 0 0 0 3px oklch(from var(--accent) l c h / .14), 0 1px 1px oklch(0% 0 0 / .2) inset; }
+    .clear-search { position: absolute; top: 50%; right: 5px; width: 32px; height: 32px; display: none; place-items: center; padding: 0; border: 0; border-radius: 7px; color: var(--muted); background: transparent; cursor: pointer; transform: translateY(-50%); }
+    .clear-search:hover { color: var(--fg); background: oklch(100% 0 0 / .1); }
+    .clear-search.is-visible { display: grid; }
+
+    .calendar { flex: 1; }
+    .calendar-header { display: grid; grid-template-columns: 36px minmax(0, 1fr) 36px; align-items: center; margin: 0 0 22px; }
+    .calendar-header h1 { margin: 0; overflow: hidden; color: var(--fg); font-size: 19px; font-weight: 680; letter-spacing: -.035em; text-align: center; text-overflow: ellipsis; white-space: nowrap; }
+    .month-button { width: 32px; height: 32px; border-radius: 9px; }
+    .month-button.next { justify-self: end; }
+    .weekdays, .day-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); }
+    .weekdays { margin-bottom: 7px; }
+    .weekdays span { height: 28px; display: grid; place-items: center; color: oklch(from var(--muted) l c h / .78); font-size: 11px; font-weight: 520; }
+    .calendar-day { height: 39px; display: grid; place-items: center; padding: 0; border: 1px solid transparent; border-radius: 50%; color: var(--fg); background: transparent; cursor: pointer; font-family: var(--body); font-size: 12px; font-variant-numeric: tabular-nums; font-weight: 540; transition: color .18s ease, background .18s ease, border-color .18s ease, box-shadow .18s ease, transform .18s ease; }
+    .calendar-day:hover:not([disabled]):not(.is-selected) { color: var(--fg); background: oklch(100% 0 0 / .1); }
+    .calendar-day:active:not([disabled]) { transform: scale(.94); }
+    .calendar-day.has-entry:not(.is-selected) { color: oklch(from var(--accent) calc(l + .1) c h); font-weight: 700; }
+    .calendar-day.is-selected { border-color: oklch(from var(--accent) calc(l + .16) c h / .52); color: oklch(99% 0 0); background: oklch(from var(--accent) calc(l + .015) c h); box-shadow: 0 5px 14px oklch(from var(--accent) l c h / .34), 0 1px 0 oklch(100% 0 0 / .14) inset; }
+    .calendar-day.is-today:not(.is-selected) { border-color: oklch(from var(--accent) l c h / .75); }
+    .calendar-day.is-future { color: oklch(from var(--muted) l c h / .38); cursor: default; }
+    .calendar-day.empty { pointer-events: none; }
+    .month-button:disabled, .calendar-day:disabled { opacity: .42; cursor: not-allowed; }
+    .sidebar-foot { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-top: 18px; border-top: 1px solid var(--border); }
+    .saved-indicator { display: flex; align-items: center; gap: 7px; color: var(--muted); font-size: 11px; }
+    .saved-indicator i { width: 7px; height: 7px; border-radius: 50%; background: oklch(70% .17 145); box-shadow: 0 0 0 3px oklch(70% .17 145 / .13); }
+    .saved-indicator.is-saving i { background: var(--yellow); box-shadow: 0 0 0 3px oklch(from var(--yellow) l c h / .14); }
+    .saved-indicator.is-error { color: oklch(from var(--red) calc(l + .14) c h); }
+    .saved-indicator.is-error i { background: var(--red); box-shadow: 0 0 0 3px oklch(from var(--red) l c h / .14); }
+
+    .search-results { display: none; flex: 1; overflow: auto; }
+    .search-results.is-visible { display: block; }
+    .result-label { display: block; margin-bottom: 12px; color: var(--muted); font-family: var(--mono); font-size: 10px; font-weight: 650; letter-spacing: .08em; text-transform: uppercase; }
+    .result-row { width: 100%; min-height: 58px; display: block; padding: 9px 10px; border: 1px solid transparent; border-radius: 9px; color: var(--fg); background: transparent; cursor: pointer; text-align: left; }
+    .result-row + .result-row { margin-top: 5px; }
+    .result-row:hover { border-color: oklch(100% 0 0 / .1); background: oklch(100% 0 0 / .08); }
+    .result-row b, .result-row span { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .result-row b { font-size: 12px; font-weight: 650; }
+    .result-row span { margin-top: 3px; color: var(--muted); font-size: 11px; }
+    .search-empty { display: none; padding: 22px 4px; color: var(--muted); font-size: 12px; text-align: center; }
+
+    .editor { min-width: 0; min-height: 0; display: grid; grid-template-rows: minmax(0, 1fr) 52px; padding: 26px clamp(28px, 5vw, 84px) 26px clamp(32px, 6vw, 96px); background: oklch(from var(--bg) calc(l + .012) c h); }
+    .editor-card { min-height: 0; display: grid; grid-template-rows: auto minmax(0, 1fr); overflow: hidden; border: 1px solid oklch(100% 0 0 / .12); border-radius: 15px 15px 0 0; background: oklch(from var(--surface) calc(l + .012) c h); box-shadow: 0 16px 36px oklch(0% 0 0 / .15), 0 1px 0 oklch(100% 0 0 / .055) inset; }
+    .editor-scroll { min-height: 0; overflow: auto; padding: clamp(32px, 5.5vw, 66px) clamp(28px, 6vw, 78px) 52px; }
+    .editor-inner { width: min(760px, 100%); margin: 0 auto; }
+    .entry-date { margin: 0 0 18px; color: oklch(from var(--muted) l c h / .9); font-size: 13px; font-weight: 520; letter-spacing: -.01em; }
+    .entry-title { margin: 0 0 34px; outline: 0; color: var(--fg); font-size: clamp(30px, 3vw, 42px); font-weight: 720; letter-spacing: -.047em; line-height: 1.15; }
+    .entry-title:empty::before { content: attr(data-placeholder); color: oklch(from var(--muted) l c h / .5); }
+    .entry-body { min-height: 340px; outline: 0; color: var(--fg); font-size: clamp(16px, 1.2vw, 18px); line-height: 1.78; letter-spacing: -.018em; }
+    .entry-body p { margin: 0 0 1.1em; }
+    .entry-body ul { margin: 0 0 1.2em; padding-left: 1.25em; }
+    .entry-body li + li { margin-top: .3em; }
+    .entry-body:empty::before { content: attr(data-placeholder); color: oklch(from var(--muted) l c h / .5); }
+    .entry-empty-state { max-width: 38ch; margin: 22px 0 0; color: var(--muted); font-size: 13px; line-height: 1.65; }
+    .editor-toolbar { min-height: 52px; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 0 16px 0 11px; border: 1px solid oklch(100% 0 0 / .12); border-top: 1px solid oklch(100% 0 0 / .09); border-radius: 0 0 15px 15px; background: oklch(from var(--bg) calc(l + .008) c h / .9); box-shadow: 0 1px 0 oklch(100% 0 0 / .035) inset; backdrop-filter: blur(12px); }
+    .format-tools { display: flex; align-items: center; gap: 3px; }
+    .tool-button { width: 36px; height: 34px; border-radius: 9px; font-size: 15px; font-weight: 650; }
+    .tool-button strong { font-size: 18px; }
+    .tool-button em { font-family: Georgia, serif; font-size: 21px; line-height: 1; }
+    .tool-button[aria-pressed="true"] { color: var(--fg); border-color: oklch(100% 0 0 / .15); background: oklch(100% 0 0 / .11); }
+    .word-count { color: var(--muted); font-family: var(--mono); font-size: 10px; font-variant-numeric: tabular-nums; }
+    .editor-scroll, .search-results { scrollbar-color: oklch(100% 0 0 / .2) transparent; scrollbar-width: thin; }
+    .editor-scroll::-webkit-scrollbar, .search-results::-webkit-scrollbar { width: 10px; }
+    .editor-scroll::-webkit-scrollbar-thumb, .search-results::-webkit-scrollbar-thumb { border: 3px solid transparent; border-radius: 99px; background: oklch(100% 0 0 / .22); background-clip: padding-box; }
+    ::selection { color: oklch(99% 0 0); background: oklch(from var(--accent) l c h / .68); }
+    .toast { position: fixed; left: 50%; bottom: 26px; z-index: 3; padding: 9px 13px; border: 1px solid oklch(100% 0 0 / .15); border-radius: 9px; color: var(--fg); background: oklch(from var(--bg) calc(l + .07) c h / .96); box-shadow: 0 12px 28px oklch(0% 0 0 / .32); font-size: 12px; transform: translate(-50%, 18px); opacity: 0; pointer-events: none; transition: transform .18s ease, opacity .18s ease; }
+    .toast.is-visible { transform: translate(-50%, 0); opacity: 1; }
+
+    .stage[data-theme="light"] .window { border-color: oklch(0% 0 0 / .16); box-shadow: 0 30px 96px oklch(0% 0 0 / .18), 0 1px 0 oklch(100% 0 0 / .66) inset; }
+    .stage[data-theme="light"] .titlebar, .stage[data-theme="light"] .sidebar { border-color: var(--border); }
+    .stage[data-theme="light"] .search { border-color: oklch(0% 0 0 / .12); background: oklch(0% 0 0 / .055); box-shadow: 0 1px 1px oklch(0% 0 0 / .09) inset; }
+    .stage[data-theme="light"] .search:hover, .stage[data-theme="light"] .search:focus { background: oklch(0% 0 0 / .075); }
+    .stage[data-theme="light"] .editor-card, .stage[data-theme="light"] .editor-toolbar { border-color: oklch(0% 0 0 / .12); box-shadow: 0 12px 28px oklch(0% 0 0 / .09), 0 1px 0 oklch(100% 0 0 / .76) inset; }
+    .stage[data-theme="light"] .settings-popover { border-color: oklch(0% 0 0 / .14); box-shadow: 0 18px 42px oklch(0% 0 0 / .16), 0 1px 0 oklch(100% 0 0 / .74) inset; }
+    .stage[data-theme="light"] .calendar-day.has-entry:not(.is-selected) { color: oklch(from var(--accent) calc(l - .12) c h); }
+    .stage[data-theme="light"] .calendar-day.is-selected { border-color: oklch(from var(--accent) calc(l - .04) c h / .64); background: oklch(from var(--accent) calc(l - .12) c h); }
+    .stage[data-theme="light"] .saved-indicator.is-error { color: oklch(from var(--red) calc(l - .15) c h); }
+    @media (prefers-color-scheme: light) {
+      .stage[data-theme="system"] .window { border-color: oklch(0% 0 0 / .16); box-shadow: 0 30px 96px oklch(0% 0 0 / .18), 0 1px 0 oklch(100% 0 0 / .66) inset; }
+      .stage[data-theme="system"] .titlebar, .stage[data-theme="system"] .sidebar { border-color: var(--border); }
+      .stage[data-theme="system"] .search { border-color: oklch(0% 0 0 / .12); background: oklch(0% 0 0 / .055); box-shadow: 0 1px 1px oklch(0% 0 0 / .09) inset; }
+      .stage[data-theme="system"] .search:hover, .stage[data-theme="system"] .search:focus { background: oklch(0% 0 0 / .075); }
+      .stage[data-theme="system"] .editor-card, .stage[data-theme="system"] .editor-toolbar { border-color: oklch(0% 0 0 / .12); box-shadow: 0 12px 28px oklch(0% 0 0 / .09), 0 1px 0 oklch(100% 0 0 / .76) inset; }
+      .stage[data-theme="system"] .settings-popover { border-color: oklch(0% 0 0 / .14); box-shadow: 0 18px 42px oklch(0% 0 0 / .16), 0 1px 0 oklch(100% 0 0 / .74) inset; }
+      .stage[data-theme="system"] .calendar-day.has-entry:not(.is-selected) { color: oklch(from var(--accent) calc(l - .12) c h); }
+      .stage[data-theme="system"] .calendar-day.is-selected { border-color: oklch(from var(--accent) calc(l - .04) c h / .64); background: oklch(from var(--accent) calc(l - .12) c h); }
+      .stage[data-theme="system"] .saved-indicator.is-error { color: oklch(from var(--red) calc(l - .15) c h); }
+    }
+
+    @media (max-width: 820px) { .stage { display: block; padding: 0; } .window { width: 100%; height: auto; min-height: 100vh; border: 0; border-radius: 0; } .diary { grid-template-columns: 1fr; } .sidebar { min-height: 430px; border-right: 0; border-bottom: 1px solid var(--border); } .editor { min-height: 660px; padding: 22px; } }
+    @media (max-width: 520px) { .titlebar { padding: 0 12px; } .window-title { display: none; } .titlebar { grid-template-columns: 1fr auto; } .title-actions { display: flex; } .settings-popover { width: min(282px, calc(100vw - 24px)); } .sidebar { padding: 22px 18px; } .editor { padding: 0; background: var(--surface); } .editor-card { border: 0; border-radius: 0; box-shadow: none; } .editor-scroll { padding: 36px 22px; } .editor-toolbar { border-right: 0; border-bottom: 0; border-left: 0; border-radius: 0; } }
+
+    /* Element UI-inspired application shell */
+    .stage { padding: clamp(20px, 3vw, 40px); background: var(--bg); }
+    .window { width: min(1280px, 100%); height: min(820px, calc(100vh - 48px)); min-height: 600px; border: 1px solid var(--border); border-radius: 6px; background: var(--surface); box-shadow: 0 8px 24px oklch(from var(--fg) l c h / .10); }
+    .titlebar { grid-template-columns: minmax(0, 1fr) auto; min-height: 56px; padding: 0 20px; border-bottom: 1px solid var(--border); background: var(--surface); box-shadow: none; backdrop-filter: none; }
+    .traffic-lights { display: none; }
+    .app-brand { display: flex; align-items: center; gap: 10px; min-width: 0; color: var(--fg); font-size: 16px; font-weight: 600; }
+    .app-brand .icon { width: 20px; height: 20px; color: var(--accent); stroke-width: 1.8; }
+    .app-brand small { padding-left: 10px; border-left: 1px solid var(--border); color: var(--muted); font-size: 13px; font-weight: 400; }
+    .window-title { display: none; }
+    .title-actions { gap: 8px; }
+    .chrome-button, .tool-button, .month-button { border-color: transparent; color: var(--muted); background: transparent; }
+    .chrome-button { width: 32px; height: 32px; border-radius: 4px; }
+    .chrome-button:hover, .tool-button:hover, .month-button:hover { color: var(--accent); border-color: oklch(from var(--accent) l c h / .22); background: oklch(from var(--accent) l c h / .09); }
+    .chrome-button:active, .tool-button:active, .month-button:active { transform: none; color: var(--accent); background: oklch(from var(--accent) l c h / .15); }
+    .settings-popover { top: 43px; width: 280px; padding: 16px; border-color: var(--border); border-radius: 4px; background: var(--surface); box-shadow: 0 8px 18px oklch(from var(--fg) l c h / .14); backdrop-filter: none; }
+    .settings-popover-head { padding: 0 0 14px; border-bottom: 1px solid oklch(from var(--border) calc(l + .03) c h); }
+    .settings-popover-head h2 { font-size: 14px; font-weight: 600; letter-spacing: 0; }
+    .settings-popover-head p { margin-top: 4px; font-size: 12px; }
+    .settings-close { width: 28px; height: 28px; border-radius: 4px; }
+    .settings-close:hover { color: var(--accent); border-color: oklch(from var(--accent) l c h / .22); background: oklch(from var(--accent) l c h / .09); }
+    .theme-options { gap: 8px; padding-top: 14px; }
+    .theme-option { min-height: 54px; gap: 10px; padding: 7px; border-color: var(--border); border-radius: 4px; }
+    .theme-option:hover { border-color: oklch(from var(--accent) l c h / .56); background: oklch(from var(--accent) l c h / .05); }
+    .theme-option[aria-checked="true"] { border-color: var(--accent); background: oklch(from var(--accent) l c h / .09); }
+    .theme-option b { font-size: 13px; font-weight: 500; }
+    .theme-option small { font-size: 11px; }
+    .theme-preview { border-color: var(--border); border-radius: 3px; background: oklch(20% .006 270); box-shadow: none; }
+    .theme-preview::before { background: oklch(24% .006 270); }
+    .theme-preview::after { background: oklch(30% .006 270); }
+    .theme-preview.light { border-color: var(--border); background: var(--bg); }
+    .theme-preview.light::before { background: oklch(94.88% .0099 267.4); }
+    .theme-preview.light::after { background: var(--surface); }
+    .theme-preview.system { background: oklch(68% .006 267); }
+    .theme-preview.system::before { background: oklch(34% .006 267); }
+    .theme-preview.system::after { background: oklch(98% .0045 258.3); }
+
+    .diary { grid-template-columns: 288px minmax(0, 1fr); }
+    .sidebar { padding: 24px 20px 20px; border-right-color: oklch(94.88% .0099 267.4); background: var(--surface); backdrop-filter: none; }
+    .search-wrap { margin-bottom: 32px; }
+    .search-wrap .icon { left: 11px; color: var(--muted); }
+    .search { height: 40px; padding-left: 36px; border-color: var(--border); border-radius: 4px; color: var(--fg); background: var(--surface); box-shadow: none; font-size: 14px; }
+    .search::placeholder { color: oklch(66.27% .0095 264.5); }
+    .search:hover { border-color: oklch(from var(--muted) calc(l + .12) c h); background: var(--surface); }
+    .search:focus { border-color: var(--accent); background: var(--surface); box-shadow: 0 0 0 2px oklch(from var(--accent) l c h / .18); }
+    .clear-search { width: 30px; height: 30px; border-radius: 4px; }
+    .clear-search:hover { color: var(--accent); background: oklch(from var(--accent) l c h / .09); }
+    .calendar-header { grid-template-columns: 32px minmax(0, 1fr) 32px; margin-bottom: 18px; }
+    .calendar-header h1 { font-size: 16px; font-weight: 500; letter-spacing: 0; }
+    .month-button { width: 32px; height: 32px; border-radius: 4px; }
+    .weekdays { margin-bottom: 5px; }
+    .weekdays span { height: 27px; color: oklch(66.27% .0095 264.5); font-size: 12px; font-weight: 400; }
+    .calendar-day { height: 34px; border-radius: 4px; color: var(--fg); font-size: 12px; font-weight: 400; }
+    .calendar-day:hover:not([disabled]):not(.is-selected) { color: var(--accent); background: oklch(from var(--accent) l c h / .09); }
+    .calendar-day:active:not([disabled]) { transform: none; background: oklch(from var(--accent) l c h / .15); }
+    .calendar-day.has-entry:not(.is-selected) { color: var(--accent); font-weight: 500; }
+    .calendar-day.is-selected { border-color: var(--accent); color: var(--surface); background: var(--accent); box-shadow: none; }
+    .calendar-day.is-today:not(.is-selected) { border-color: oklch(from var(--accent) l c h / .62); color: var(--accent); }
+    .calendar-day.is-future { color: oklch(80% .008 264.5); }
+    .month-button:disabled, .calendar-day:disabled { opacity: .55; }
+    .sidebar-foot { padding-top: 16px; border-top-color: oklch(94.88% .0099 267.4); }
+    .saved-indicator { font-size: 12px; }
+    .saved-indicator i { width: 6px; height: 6px; box-shadow: none; }
+
+    .result-label { margin-bottom: 10px; color: var(--muted); font-family: var(--body); font-size: 12px; font-weight: 500; letter-spacing: 0; text-transform: none; }
+    .result-row { min-height: 60px; padding: 10px; border-color: transparent; border-radius: 4px; }
+    .result-row + .result-row { margin-top: 4px; }
+    .result-row:hover { border-color: oklch(from var(--accent) l c h / .25); background: oklch(from var(--accent) l c h / .06); }
+    .result-row b { font-size: 13px; font-weight: 500; }
+    .result-row span { margin-top: 4px; font-size: 12px; }
+
+    .editor { padding: 24px; background: var(--bg); }
+    .editor-card { border-color: var(--border); border-radius: 4px 4px 0 0; background: var(--surface); box-shadow: none; }
+    .editor-scroll { padding: clamp(32px, 5vw, 56px) clamp(28px, 6vw, 72px) 44px; }
+    .editor-inner { width: min(740px, 100%); }
+    .entry-date { margin-bottom: 16px; color: var(--muted); font-size: 13px; font-weight: 400; letter-spacing: 0; }
+    .entry-title { margin-bottom: 28px; font-size: clamp(28px, 3vw, 34px); font-weight: 600; letter-spacing: 0; line-height: 1.35; }
+    .entry-title:empty::before, .entry-body:empty::before { color: oklch(66.27% .0095 264.5); }
+    .entry-body { min-height: 340px; font-size: 16px; line-height: 1.78; letter-spacing: 0; }
+    .entry-body p { margin-bottom: 1.15em; }
+    .entry-empty-state { margin-top: 18px; color: var(--muted); font-size: 13px; }
+    .editor-toolbar { min-height: 50px; padding: 0 12px; border-color: var(--border); border-top-color: oklch(94.88% .0099 267.4); border-radius: 0 0 4px 4px; background: var(--surface); box-shadow: none; backdrop-filter: none; }
+    .format-tools { gap: 4px; }
+    .tool-button { width: 32px; height: 32px; border-radius: 4px; font-size: 14px; }
+    .tool-button strong { font-size: 16px; }
+    .tool-button em { font-size: 19px; }
+    .tool-button[aria-pressed="true"] { color: var(--accent); border-color: oklch(from var(--accent) l c h / .25); background: oklch(from var(--accent) l c h / .09); }
+    .word-count { font-family: var(--body); font-size: 12px; }
+    .editor-scroll, .search-results { scrollbar-color: oklch(86% .008 267) transparent; }
+    .editor-scroll::-webkit-scrollbar-thumb, .search-results::-webkit-scrollbar-thumb { background: oklch(86% .008 267); background-clip: padding-box; }
+    ::selection { color: var(--surface); background: oklch(from var(--accent) l c h / .80); }
+    .toast { top: 20px; bottom: auto; padding: 11px 16px; border-color: var(--border); border-radius: 4px; color: var(--fg); background: var(--surface); box-shadow: 0 6px 16px oklch(from var(--fg) l c h / .14); font-size: 13px; transform: translate(-50%, -12px); }
+    .toast.is-visible { transform: translate(-50%, 0); }
+
+    .stage[data-theme="light"] .window, .stage[data-theme="system"] .window { border-color: var(--border); box-shadow: 0 8px 24px oklch(from var(--fg) l c h / .10); }
+    .stage[data-theme="light"] .titlebar, .stage[data-theme="system"] .titlebar, .stage[data-theme="light"] .sidebar, .stage[data-theme="system"] .sidebar { border-color: oklch(94.88% .0099 267.4); }
+    .stage[data-theme="light"] .search, .stage[data-theme="system"] .search { border-color: var(--border); background: var(--surface); box-shadow: none; }
+    .stage[data-theme="light"] .search:hover, .stage[data-theme="light"] .search:focus, .stage[data-theme="system"] .search:hover, .stage[data-theme="system"] .search:focus { background: var(--surface); }
+    .stage[data-theme="light"] .editor-card, .stage[data-theme="light"] .editor-toolbar, .stage[data-theme="system"] .editor-card, .stage[data-theme="system"] .editor-toolbar { border-color: var(--border); box-shadow: none; }
+    .stage[data-theme="light"] .settings-popover, .stage[data-theme="system"] .settings-popover { border-color: var(--border); box-shadow: 0 8px 18px oklch(from var(--fg) l c h / .14); }
+    .stage[data-theme="light"] .calendar-day.has-entry:not(.is-selected), .stage[data-theme="system"] .calendar-day.has-entry:not(.is-selected) { color: var(--accent); }
+    .stage[data-theme="light"] .calendar-day.is-selected, .stage[data-theme="system"] .calendar-day.is-selected { border-color: var(--accent); background: var(--accent); }
+
+    .stage[data-theme="dark"] { --bg: oklch(18% .006 264); --surface: oklch(23% .006 264); --fg: oklch(92% .007 264); --muted: oklch(72% .009 264); --border: oklch(31% .008 264); }
+    @media (prefers-color-scheme: dark) { .stage[data-theme="system"] { --bg: oklch(18% .006 264); --surface: oklch(23% .006 264); --fg: oklch(92% .007 264); --muted: oklch(72% .009 264); --border: oklch(31% .008 264); } }
+    @media (max-width: 820px) { .stage { padding: 0; } .window { height: auto; min-height: 100vh; } .sidebar { min-height: 408px; } .editor { padding: 18px; } }
+    @media (max-width: 520px) { .titlebar { min-height: 56px; padding: 0 16px; } .app-brand small { display: none; } .chrome-button { width: 44px; height: 44px; } .settings-popover { top: 50px; } .sidebar { padding: 20px 16px; } .editor { padding: 0; } .editor-scroll { padding: 32px 22px; } .tool-button, .month-button { min-width: 40px; min-height: 40px; } .calendar-header { grid-template-columns: 40px minmax(0, 1fr) 40px; } .editor-toolbar { min-height: 56px; padding: 0 10px; } }
+  </style>
+</head>
+<body>
+  <main class="stage" data-theme="light" data-od-id="mini-diary-macos-redesign">
+    <section class="window" aria-label="Mini Diary">
+      <header class="titlebar" data-od-id="app-titlebar">
+        <div class="app-brand" data-od-id="app-brand">
+          <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5.5 4.5h10.8a2.2 2.2 0 0 1 2.2 2.2v12.8H7.7a2.2 2.2 0 0 1-2.2-2.2z"/><path d="M8.5 4.5v15"/></svg>
+          <span>Mini Diary</span><small>我的日记</small>
+        </div>
+        <span class="window-title">Mini Diary</span>
+        <div class="title-actions"><button class="chrome-button" id="settingsButton" type="button" data-od-id="preferences-control" aria-label="偏好设置" aria-expanded="false" aria-controls="settingsPopover"><svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.88l.06.06-2.07 2.07-.06-.06a1.7 1.7 0 0 0-1.88-.34 1.7 1.7 0 0 0-1.03 1.56V20h-2.93v-.08A1.7 1.7 0 0 0 10.8 18.4a1.7 1.7 0 0 0-1.88.34l-.06.06-2.07-2.07.06-.06A1.7 1.7 0 0 0 7.19 14.8 1.7 1.7 0 0 0 5.63 13.8h-.08v-2.93h.08a1.7 1.7 0 0 0 1.56-1.03 1.7 1.7 0 0 0-.34-1.88l-.06-.06 2.07-2.07.06.06a1.7 1.7 0 0 0 1.88.34 1.7 1.7 0 0 0 1.03-1.56V4.6h2.93v.08a1.7 1.7 0 0 0 1.03 1.56 1.7 1.7 0 0 0 1.88-.34l.06-.06L19.8 7.9l-.06.06a1.7 1.7 0 0 0-.34 1.88 1.7 1.7 0 0 0 1.56 1.03h.08v2.93h-.08A1.7 1.7 0 0 0 19.4 15z"/></svg></button><section class="settings-popover" id="settingsPopover" data-od-id="appearance-settings" role="dialog" aria-modal="false" aria-labelledby="settingsTitle" hidden><header class="settings-popover-head"><div><h2 id="settingsTitle">外观</h2><p>选择 Mini Diary 的显示方式</p></div><button class="settings-close" id="settingsClose" type="button" data-od-id="close-settings" aria-label="关闭设置"><svg class="icon" viewBox="0 0 24 24"><path d="m7 7 10 10M17 7 7 17"/></svg></button></header><div class="theme-options" role="radiogroup" aria-label="主题模式"><button class="theme-option" type="button" data-theme-option="system" data-od-id="theme-system" role="radio" aria-checked="false"><span class="theme-preview system" aria-hidden="true"></span><span><b>跟随系统</b><small>使用系统外观设置</small></span><span class="check" aria-hidden="true">✓</span></button><button class="theme-option" type="button" data-theme-option="light" data-od-id="theme-light" role="radio" aria-checked="true"><span class="theme-preview light" aria-hidden="true"></span><span><b>浅色模式</b><small>清晰、克制的阅读界面</small></span><span class="check" aria-hidden="true">✓</span></button><button class="theme-option" type="button" data-theme-option="dark" data-od-id="theme-dark" role="radio" aria-checked="false"><span class="theme-preview" aria-hidden="true"></span><span><b>深色模式</b><small>适合夜间记录</small></span><span class="check" aria-hidden="true">✓</span></button></div></section></div>
+      </header>
+
+      <div class="diary" data-od-id="diary-layout">
+        <aside class="sidebar" data-od-id="calendar-sidebar">
+          <div class="search-wrap" data-od-id="search-bar">
+            <label class="visually-hidden" for="searchInput">搜索日记</label>
+            <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.8"/><path d="m16 16 4 4"/></svg>
+            <input class="search" id="searchInput" type="search" autocomplete="off" placeholder="搜索日记">
+            <button class="clear-search" id="clearSearch" type="button" aria-label="清除搜索"><svg class="icon" viewBox="0 0 24 24"><path d="m7 7 10 10M17 7 7 17"/></svg></button>
+          </div>
+
+          <section class="calendar" id="calendarPanel" data-od-id="month-calendar">
+            <header class="calendar-header"><button class="month-button" id="previousMonth" type="button" data-od-id="previous-month" aria-label="上个月"><svg class="icon" viewBox="0 0 24 24"><path d="m14.5 5-7 7 7 7"/></svg></button><h1 id="monthName" data-od-id="month-heading">2026 年 8 月</h1><button class="month-button next" id="nextMonth" type="button" data-od-id="next-month" aria-label="下个月"><svg class="icon" viewBox="0 0 24 24"><path d="m9.5 5 7 7-7 7"/></svg></button></header>
+            <div class="weekdays" aria-hidden="true"><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span><span>日</span></div>
+            <div class="day-grid" id="dayGrid" aria-label="2026 年 8 月日历">
+              <span class="calendar-day empty"></span><span class="calendar-day empty"></span><span class="calendar-day empty"></span><span class="calendar-day empty"></span><span class="calendar-day empty"></span>
+              <button class="calendar-day" type="button" data-date="2026-08-01">1</button><button class="calendar-day" type="button" data-date="2026-08-02">2</button>
+              <button class="calendar-day" type="button" data-date="2026-08-03">3</button><button class="calendar-day" type="button" data-date="2026-08-04">4</button><button class="calendar-day" type="button" data-date="2026-08-05">5</button><button class="calendar-day has-entry" type="button" data-date="2026-08-06">6</button><button class="calendar-day" type="button" data-date="2026-08-07">7</button><button class="calendar-day" type="button" data-date="2026-08-08">8</button><button class="calendar-day" type="button" data-date="2026-08-09">9</button>
+              <button class="calendar-day" type="button" data-date="2026-08-10">10</button><button class="calendar-day" type="button" data-date="2026-08-11">11</button><button class="calendar-day has-entry" type="button" data-date="2026-08-12">12</button><button class="calendar-day" type="button" data-date="2026-08-13">13</button><button class="calendar-day" type="button" data-date="2026-08-14">14</button><button class="calendar-day" type="button" data-date="2026-08-15">15</button><button class="calendar-day" type="button" data-date="2026-08-16">16</button>
+              <button class="calendar-day" type="button" data-date="2026-08-17">17</button><button class="calendar-day has-entry" type="button" data-date="2026-08-18">18</button><button class="calendar-day" type="button" data-date="2026-08-19">19</button><button class="calendar-day" type="button" data-date="2026-08-20">20</button><button class="calendar-day" type="button" data-date="2026-08-21">21</button><button class="calendar-day" type="button" data-date="2026-08-22">22</button><button class="calendar-day" type="button" data-date="2026-08-23">23</button>
+              <button class="calendar-day has-entry" type="button" data-date="2026-08-24">24</button><button class="calendar-day" type="button" data-date="2026-08-25">25</button><button class="calendar-day" type="button" data-date="2026-08-26">26</button><button class="calendar-day has-entry" type="button" data-date="2026-08-27">27</button><button class="calendar-day" type="button" data-date="2026-08-28">28</button><button class="calendar-day is-selected is-today has-entry" type="button" data-date="2026-08-29">29</button><button class="calendar-day" type="button" data-date="2026-08-30">30</button>
+              <button class="calendar-day" type="button" data-date="2026-08-31">31</button><span class="calendar-day empty"></span><span class="calendar-day empty"></span><span class="calendar-day empty"></span><span class="calendar-day empty"></span><span class="calendar-day empty"></span><span class="calendar-day empty"></span>
+            </div>
+          </section>
+
+          <section class="search-results" id="searchResults" data-od-id="search-results"><span class="result-label" id="resultLabel" aria-live="polite">搜索结果</span><div id="resultItems"></div><p class="search-empty" id="searchEmpty" role="status">没有找到匹配的日记</p></section>
+          <footer class="sidebar-foot" data-od-id="sidebar-footer"><span class="saved-indicator" id="saveState" role="status" aria-live="polite"><i aria-hidden="true"></i>已自动保存</span></footer>
+        </aside>
+
+        <article class="editor" data-od-id="diary-editor">
+          <section class="editor-card" aria-label="日记编辑区">
+            <div class="editor-scroll"><div class="editor-inner"><p class="entry-date" id="entryDate" data-od-id="entry-date">2026 年 8 月 29 日，星期六</p><h2 class="entry-title" id="entryTitle" contenteditable="true" data-placeholder="添加标题" spellcheck="true" data-od-id="entry-title">把周末留给自己</h2><div class="entry-body" id="entryBody" contenteditable="true" data-placeholder="写点什么…" spellcheck="true" data-od-id="entry-content"><p>今天下了一点雨。早上醒得很慢，窗外的声音像被洗过一样干净。</p><p>我没有急着打开待办清单，而是把桌面上散落的纸张收好，给自己泡了一盏茶。原来不必把每一个空白都填满。</p><p>傍晚想去附近走走，带上耳机，也带上不需要抵达哪里的心情。</p></div><p class="entry-empty-state" id="entryEmptyState" role="status" hidden>这一天还没有记录。写下第一句，Mini Diary 会自动保存。</p></div></div>
+          </section>
+          <footer class="editor-toolbar" data-od-id="editor-toolbar"><div class="format-tools" role="toolbar" aria-label="文本格式"><button class="tool-button" type="button" data-od-id="format-bold" data-command="bold" aria-label="粗体" aria-pressed="false"><strong>B</strong></button><button class="tool-button" type="button" data-od-id="format-italic" data-command="italic" aria-label="斜体" aria-pressed="false"><em>I</em></button><button class="tool-button" type="button" data-od-id="format-bullets" data-command="insertUnorderedList" aria-label="项目符号" aria-pressed="false"><svg class="icon" viewBox="0 0 24 24"><path d="M9 6h11M9 12h11M9 18h11"/><circle cx="4.5" cy="6" r=".7" fill="currentColor"/><circle cx="4.5" cy="12" r=".7" fill="currentColor"/><circle cx="4.5" cy="18" r=".7" fill="currentColor"/></svg></button><button class="tool-button" type="button" data-od-id="format-numbered-list" data-command="insertOrderedList" aria-label="编号列表" aria-pressed="false"><svg class="icon" viewBox="0 0 24 24"><path d="M10 6h10M10 12h10M10 18h10M4 5v2h1M4 11h1v2H4M4 17h1v2H4"/></svg></button></div><span class="word-count" id="wordCount">0 字</span></footer>
+        </article>
+      </div>
+    </section>
+  </main>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <script>
+    (() => {
+      const entries = {
+        "2026-08-29": { date: "2026 年 8 月 29 日，星期六", title: "把周末留给自己", body: "<p>今天下了一点雨。早上醒得很慢，窗外的声音像被洗过一样干净。</p><p>我没有急着打开待办清单，而是把桌面上散落的纸张收好，给自己泡了一盏茶。原来不必把每一个空白都填满。</p><p>傍晚想去附近走走，带上耳机，也带上不需要抵达哪里的心情。</p>" },
+        "2026-08-27": { date: "2026 年 8 月 27 日，星期四", title: "午后的一小时散步", body: "<p>出门时没有设定路线，只是在风吹起来的时候，顺着树影往前走。</p><p>银杏还很绿，咖啡店门口有人在读一本厚书。我想把这一小时保存下来。</p>" },
+        "2026-08-24": { date: "2026 年 8 月 24 日，星期一", title: "让事项慢一点发生", body: "<p>今天最重要的决定，是把不紧急的事情从今天移走。</p><p>空出一点余地，反而更能看清下一步。</p>" },
+        "2026-08-18": { date: "2026 年 8 月 18 日，星期二", title: "雨后有一点凉", body: "<p>下午的雨来得很短。关上窗时，空气里留下了一点潮湿的草木味。</p>" },
+        "2026-08-12": { date: "2026 年 8 月 12 日，星期三", title: "把声音调低", body: "<p>把通知关掉，午饭慢慢吃完。事情没有变少，但心里多出了一点空间。</p>" },
+        "2026-08-06": { date: "2026 年 8 月 6 日，星期四", title: "新的笔记本", body: "<p>今天开始用这本新的日记。第一页没有写太多，只记录了一束从窗边落下的光。</p>" }
+      };
+      const $ = (selector) => document.querySelector(selector);
+      const $$ = (selector) => [...document.querySelectorAll(selector)];
+      const readStorage = (key) => { try { return localStorage.getItem(key); } catch { return null; } };
+      const writeStorage = (key, value) => { try { localStorage.setItem(key, value); return true; } catch { return false; } };
+      const restoredEntries = (() => {
+        try {
+          const parsed = JSON.parse(readStorage("mini-diary-entries") || "{}");
+          if (!parsed || Array.isArray(parsed)) return {};
+          return Object.fromEntries(Object.entries(parsed).filter(([date, entry]) => /^2026-(0[1-9]|1[0-2])-([0-2][0-9]|3[01])$/.test(date) && entry && typeof entry.date === "string" && typeof entry.title === "string" && typeof entry.body === "string"));
+        } catch { return {}; }
+      })();
+      Object.assign(entries, restoredEntries);
+      const title = $("#entryTitle"), body = $("#entryBody"), entryDate = $("#entryDate"), entryEmptyState = $("#entryEmptyState"), wordCount = $("#wordCount"), saveState = $("#saveState"), toast = $("#toast"), search = $("#searchInput"), results = $("#searchResults"), resultLabel = $("#resultLabel"), resultItems = $("#resultItems"), searchEmpty = $("#searchEmpty"), calendar = $("#calendarPanel"), clear = $("#clearSearch"), dayGrid = $("#dayGrid"), monthName = $("#monthName"), previousMonth = $("#previousMonth"), nextMonth = $("#nextMonth"), stage = $(".stage"), settingsButton = $("#settingsButton"), settingsPopover = $("#settingsPopover"), settingsClose = $("#settingsClose"), themeOptions = $$(".theme-option"), toolButtons = $$(".tool-button");
+      const todayKey = "2026-08-29";
+      let toastTimer, saveIndicatorTimer, selectedDate = todayKey, month = 8, settingsTrigger = settingsButton;
+      const showToast = (message) => { toast.textContent = message; toast.classList.add("is-visible"); clearTimeout(toastTimer); toastTimer = setTimeout(() => toast.classList.remove("is-visible"), 1800); };
+      const themeLabels = { system: "跟随系统", light: "浅色模式", dark: "深色模式" };
+      const closeSettings = () => { settingsPopover.hidden = true; settingsButton.setAttribute("aria-expanded", "false"); };
+      const openSettings = (trigger = settingsButton) => { settingsTrigger = trigger; settingsPopover.hidden = false; settingsButton.setAttribute("aria-expanded", "true"); settingsPopover.querySelector('[aria-checked="true"]').focus(); };
+      const applyTheme = (theme, persist = true) => { const selected = themeLabels[theme] ? theme : "system"; stage.dataset.theme = selected; themeOptions.forEach((option) => option.setAttribute("aria-checked", String(option.dataset.themeOption === selected))); settingsButton.setAttribute("aria-label", `偏好设置，当前${themeLabels[selected]}`); if (persist) writeStorage("mini-diary-theme", selected); };
+      settingsButton.addEventListener("click", () => { if (settingsPopover.hidden) openSettings(settingsButton); else closeSettings(); });
+      settingsClose.addEventListener("click", () => { closeSettings(); settingsTrigger.focus(); });
+      themeOptions.forEach((option) => option.addEventListener("click", () => { applyTheme(option.dataset.themeOption); closeSettings(); settingsTrigger.focus(); showToast(`已切换为${themeLabels[option.dataset.themeOption]}`); }));
+      document.addEventListener("click", (event) => { if (!settingsPopover.hidden && !settingsPopover.contains(event.target) && !settingsButton.contains(event.target)) closeSettings(); });
+      settingsPopover.addEventListener("keydown", (event) => {
+        const currentIndex = Math.max(0, themeOptions.indexOf(document.activeElement));
+        if (["ArrowDown", "ArrowRight", "ArrowUp", "ArrowLeft", "Home", "End"].includes(event.key)) {
+          event.preventDefault();
+          const nextIndex = event.key === "Home" ? 0 : event.key === "End" ? themeOptions.length - 1 : (currentIndex + (event.key === "ArrowDown" || event.key === "ArrowRight" ? 1 : -1) + themeOptions.length) % themeOptions.length;
+          themeOptions[nextIndex].focus();
+          applyTheme(themeOptions[nextIndex].dataset.themeOption);
+        }
+      });
+      document.addEventListener("keydown", (event) => { if (event.key === "Escape" && !settingsPopover.hidden) { closeSettings(); settingsTrigger.focus(); } });
+      applyTheme(readStorage("mini-diary-theme") || "light", false);
+      const updateWordCount = () => { wordCount.textContent = `${body.textContent.replace(/\s/g, "").length} 字`; };
+      const updateEmptyState = () => { entryEmptyState.hidden = Boolean(title.textContent.trim() || body.textContent.trim()); };
+      const sanitizeEntryHtml = (html) => {
+        const template = document.createElement("template");
+        template.innerHTML = html;
+        template.content.querySelectorAll("script, style, iframe, object, embed, link, meta").forEach((node) => node.remove());
+        template.content.querySelectorAll("*").forEach((node) => [...node.attributes].forEach((attribute) => {
+          if (/^on/i.test(attribute.name) || attribute.name === "style" || (attribute.name === "href" && !/^(https?:|mailto:|#)/i.test(attribute.value))) node.removeAttribute(attribute.name);
+        }));
+        return template.innerHTML;
+      };
+      const setSaveState = (state) => {
+        clearTimeout(saveIndicatorTimer);
+        saveState.classList.toggle("is-saving", state === "saving");
+        saveState.classList.toggle("is-error", state === "error");
+        saveState.innerHTML = `<i aria-hidden="true"></i>${state === "saving" ? "正在保存…" : state === "error" ? "未能保存" : "已自动保存"}`;
+      };
+      const save = () => {
+        updateWordCount();
+        updateEmptyState();
+        const hasContent = Boolean(title.textContent.trim() || body.textContent.trim());
+        if (hasContent) entries[selectedDate] = { date: entryDate.textContent, title: title.textContent.trim(), body: sanitizeEntryHtml(body.innerHTML) };
+        else delete entries[selectedDate];
+        setSaveState("saving");
+        const saved = writeStorage("mini-diary-entries", JSON.stringify(entries)) && writeStorage("mini-diary-selected-date", selectedDate);
+        dayGrid.querySelector(`[data-date="${selectedDate}"]`)?.classList.toggle("has-entry", hasContent);
+        if (!saved) { setSaveState("error"); showToast("未能保存更改，请检查浏览器存储权限"); return; }
+        saveIndicatorTimer = setTimeout(() => setSaveState("saved"), 420);
+      };
+      const bindCalendarDays = () => $$(".calendar-day[data-date]").forEach((day) => day.addEventListener("click", () => setEntry(day.dataset.date)));
+      const formatDate = (date) => { const [year, currentMonth, day] = date.split("-").map(Number); const weekday = ["日", "一", "二", "三", "四", "五", "六"][new Date(year, currentMonth - 1, day).getDay()]; return `${year} 年 ${currentMonth} 月 ${day} 日，星期${weekday}`; };
+      const renderCalendar = () => {
+        const monthPrefix = `2026-${String(month).padStart(2, "0")}`;
+        const offset = (new Date(Date.UTC(2026, month - 1, 1)).getUTCDay() + 6) % 7;
+        const dayTotal = new Date(Date.UTC(2026, month, 0)).getUTCDate();
+        let markup = Array(offset).fill("<span class=\"calendar-day empty\"></span>").join("");
+        for (let day = 1; day <= dayTotal; day++) {
+          const date = `${monthPrefix}-${String(day).padStart(2, "0")}`;
+          const isFuture = date > todayKey, isSelected = date === selectedDate, entry = entries[date];
+          const classes = ["calendar-day"];
+          if (entry) classes.push("has-entry");
+          if (date === todayKey) classes.push("is-today");
+          if (isSelected) classes.push("is-selected");
+          if (isFuture) classes.push("is-future");
+          markup += `<button class="${classes.join(" ")}" type="button" data-date="${date}" aria-label="${formatDate(date)}，${entry ? "已有日记" : "新建日记"}${isSelected ? "，已选中" : ""}" aria-pressed="${isSelected}"${date === todayKey ? " aria-current=\"date\"" : ""}${isFuture ? " disabled" : ""}>${day}</button>`;
+        }
+        dayGrid.innerHTML = markup;
+        monthName.textContent = `2026 年 ${month} 月`;
+        dayGrid.setAttribute("aria-label", `${monthName.textContent}日历`);
+        previousMonth.disabled = month === 1;
+        nextMonth.disabled = month === 8;
+        bindCalendarDays();
+      };
+      const setEntry = (date) => { const entry = entries[date]; selectedDate = date; if (entry) { entryDate.textContent = entry.date; title.textContent = entry.title; body.innerHTML = sanitizeEntryHtml(entry.body); } else { entryDate.textContent = formatDate(date); title.textContent = ""; body.innerHTML = ""; } writeStorage("mini-diary-selected-date", date); renderCalendar(); updateWordCount(); updateEmptyState(); };
+      title.addEventListener("input", save); body.addEventListener("input", save);
+      const syncFormatState = () => toolButtons.forEach((button) => { try { button.setAttribute("aria-pressed", String(document.queryCommandState(button.dataset.command))); } catch { button.setAttribute("aria-pressed", "false"); } });
+      toolButtons.forEach((button) => {
+        button.addEventListener("mousedown", (event) => event.preventDefault());
+        button.addEventListener("click", () => { body.focus(); document.execCommand(button.dataset.command, false); syncFormatState(); save(); });
+      });
+      document.addEventListener("selectionchange", () => { if (document.activeElement === body) syncFormatState(); });
+      const renderResults = (term) => {
+        const query = term.trim().toLocaleLowerCase("zh-CN");
+        const matches = Object.entries(entries).filter(([, entry]) => `${entry.title} ${entry.body}`.toLocaleLowerCase("zh-CN").includes(query));
+        resultItems.replaceChildren();
+        matches.forEach(([date, entry]) => {
+          const row = document.createElement("button"), resultTitle = document.createElement("b"), resultDate = document.createElement("span");
+          row.className = "result-row"; row.type = "button"; row.dataset.resultDate = date;
+          resultTitle.textContent = entry.title || "无标题日记";
+          resultDate.textContent = entry.date;
+          row.append(resultTitle, resultDate);
+          row.addEventListener("click", () => { setEntry(date); search.value = ""; results.classList.remove("is-visible"); calendar.hidden = false; clear.classList.remove("is-visible"); search.focus(); });
+          resultItems.append(row);
+        });
+        resultLabel.textContent = matches.length ? `找到 ${matches.length} 篇日记` : "搜索结果";
+        searchEmpty.style.display = matches.length ? "none" : "block";
+      };
+      search.addEventListener("input", (event) => { const term = event.target.value; const active = term.trim().length > 0; calendar.hidden = active; results.classList.toggle("is-visible", active); clear.classList.toggle("is-visible", active); if (active) renderResults(term); });
+      clear.addEventListener("click", () => { search.value = ""; calendar.hidden = false; results.classList.remove("is-visible"); clear.classList.remove("is-visible"); search.focus(); });
+      const changeMonth = (amount) => { const next = Math.min(8, Math.max(1, month + amount)); if (next === month) return; month = next; renderCalendar(); showToast(`已切换至 2026 年 ${month} 月`); }; previousMonth.addEventListener("click", () => changeMonth(-1)); nextMonth.addEventListener("click", () => changeMonth(1));
+      const savedDate = readStorage("mini-diary-selected-date"); if (/^2026-(0[1-8])-([0-2][0-9]|3[01])$/.test(savedDate || "")) { month = Number(savedDate.slice(5, 7)); setEntry(savedDate); } else { renderCalendar(); updateWordCount(); updateEmptyState(); }
+    })();
+  </script>
+</body>
+</html>

@@ -1,5 +1,3 @@
-import logger from "electron-log";
-
 import { parseDayOneJson, parseJrnlJson, parseMiniDiaryJson } from "../../files/import/json";
 import { parseDayOneTxt } from "../../files/import/txt";
 import { ImportFormat } from "../../types";
@@ -51,12 +49,11 @@ export function setImportFormat(importFormat: ImportFormat): SetImportFormatActi
 
 // Thunks
 
-export const runImport = (importFilePath: string): ThunkActionT => async (dispatch, getState): Promise<void> => {
+export const runImport = (fileContent: string): ThunkActionT => async (dispatch, getState): Promise<void> => {
 	const { importFormat } = getState().import;
 
 	dispatch(setImportInProgress());
 	try {
-		const fileContent = await window.miniDiary.diary.readTextFile(importFilePath);
 
 		// Get parser function for import format
 		let parseFunc;
@@ -74,11 +71,11 @@ export const runImport = (importFilePath: string): ThunkActionT => async (dispat
 
 		// Parse file and make it compatible with Mini Diary
 		const json = parseFunc(fileContent);
-		dispatch(mergeUpdateFile(json));
+		await dispatch(mergeUpdateFile(json));
 		dispatch(setImportSuccess());
 		dispatch(closeOverlay());
 	} catch (err) {
-		logger.error("Error importing diary file: ", err);
+		console.error("Error importing diary file: ", err);
 		dispatch(setImportError(err.toString()));
 	}
 };

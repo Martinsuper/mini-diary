@@ -1,22 +1,26 @@
 import { connect } from "react-redux";
 
+import { updateThemePref } from "../store/app/actionCreators";
 import { testFileExists } from "../store/file/actionCreators";
 import { RootState, ThunkDispatchT } from "../store/store";
+import { ThemePref } from "../types";
 import App, { DispatchProps, StateProps } from "./App";
 
 const mapStateToProps = (state: RootState): StateProps => ({
 	exportErrorMsg: state.export.exportErrorMsg,
 	exportStatus: state.export.exportStatus,
 	fileExists: state.file.fileExists,
-	hashedPassword: state.file.hashedPassword,
+	isUnlocked: state.file.isUnlocked,
 	importErrorMsg: state.import.importErrorMsg,
 	importStatus: state.import.importStatus,
 	overlay: state.app.overlay,
 	theme: state.app.theme,
+	themePref: state.app.themePref,
 });
 
 const mapDispatchToProps = (dispatch: ThunkDispatchT): DispatchProps => ({
 	testFileExists: (): void => dispatch(testFileExists()),
+	updateThemePref: (themePref: ThemePref): void => dispatch(updateThemePref(themePref)),
 });
 
 export default connect(mapStateToProps, mapDispatchToProps)(App);

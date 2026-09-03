@@ -1,4 +1,3 @@
-import logger from "electron-log";
 import { Moment } from "moment-timezone";
 import React, { ChangeEvent, FormEvent, ReactElement, useState } from "react";
 
@@ -36,7 +35,7 @@ export default function GoToDateOverlay(props: Props): ReactElement {
 	const onSubmit = (event: FormEvent<HTMLFormElement>): void => {
 		event.preventDefault();
 		if (!date) {
-			logger.error("Cannot go to date: Date is not defined");
+			console.error("Cannot go to date: Date is not defined");
 		} else {
 			setDateSelected(fromIndexDate(date));
 			closeOverlay();

@@ -91,7 +91,8 @@ export default function FormattingButtons(props: Props): ReactElement {
 				<OlIcon
 					{...iconProps}
 					strokeWidth={isOl ? STROKE_WIDTH_SELECTED : STROKE_WIDTH_DEFAULT}
-					title={translations.list}
+					className="ordered-list-icon"
+						title={translations.list}
 				/>
 			</button>
 		</div>

@@ -1,37 +1,43 @@
-import React, { Component, ReactNode } from "react";
+import SettingsIcon from "feather-icons/dist/icons/settings.svg";
+import React, { Component, lazy, ReactNode, Suspense } from "react";
 
 import { OverlayType } from "../../shared/types";
 import { toggleWindowSize } from "../electron/window";
-import { Status, Theme } from "../types";
+import { Status, Theme, ThemePref } from "../types";
 import { translations } from "../utils/i18n";
-import GoToDateOverlayContainer from "./overlays/go-to-date-overlay/GoToDateOverlayContainer";
-import ImportOverlayContainer from "./overlays/import-overlay/ImportOverlayContainer";
-import PrefOverlayContainer from "./overlays/pref-overlay/PrefOverlayContainer";
-import StatsOverlayContainer from "./overlays/stats-overlay/StatsOverlayContainer";
+import { iconProps } from "../utils/icons";
 import Diary from "./pages/diary/Diary";
 import PasswordCreationContainer from "./pages/start-page/password-creation/PasswordCreationContainer";
 import PasswordPromptContainer from "./pages/start-page/password-prompt/PasswordPromptContainer";
 import ThemeContext from "./ThemeContext";
 
+const GoToDateOverlayContainer = lazy(() => import("./overlays/go-to-date-overlay/GoToDateOverlayContainer"));
+const ImportOverlayContainer = lazy(() => import("./overlays/import-overlay/ImportOverlayContainer"));
+const PrefOverlayContainer = lazy(() => import("./overlays/pref-overlay/PrefOverlayContainer"));
+const StatsOverlayContainer = lazy(() => import("./overlays/stats-overlay/StatsOverlayContainer"));
+
 export interface StateProps {
 	exportErrorMsg: string;
 	exportStatus: Status;
 	fileExists: boolean;
-	hashedPassword: string;
+	isUnlocked: boolean;
 	importErrorMsg: string;
 	importStatus: Status;
 	overlay: OverlayType;
 	theme: Theme;
+	themePref: ThemePref;
 }
 
 export interface DispatchProps {
 	testFileExists: () => void;
+	updateThemePref: (themePref: ThemePref) => void;
 }
 
 type Props = StateProps & DispatchProps;
 
 interface State {
 	isLoading: boolean;
+	isThemeMenuOpen: boolean;
 }
 
 export default class App extends Component<Props, State> {
@@ -62,90 +68,101 @@ export default class App extends Component<Props, State> {
 
 	constructor(props: Props) {
 		super(props);
-
-		this.state = {
-			isLoading: true,
-		};
+		this.state = { isLoading: true, isThemeMenuOpen: false };
 	}
 
 	componentDidMount(): void {
 		const { testFileExists } = this.props;
-
 		testFileExists();
-		this.setState({
-			isLoading: false,
-		});
+		this.setState({ isLoading: false });
 	}
 
 	componentDidUpdate(prevProps: Props): void {
 		const { exportErrorMsg, exportStatus, importErrorMsg, importStatus } = this.props;
-
-		// Check for export error and display it if there is one
 		if (exportErrorMsg && exportErrorMsg !== prevProps.exportErrorMsg) {
 			void window.miniDiary.dialogs.showError(
 				translations["export-error-title"],
 				`${translations["export-error-msg"]}: ${exportErrorMsg}`,
 			);
 		}
-
-		// Check for import error and display it if there is one
 		if (importErrorMsg && importErrorMsg !== prevProps.importErrorMsg) {
 			void window.miniDiary.dialogs.showError(
 				translations["import-error-title"],
 				`${translations["import-error-msg"]}: ${importErrorMsg}`,
 			);
 		}
-
-		// Show loading spinner if necessary
 		if (exportStatus !== prevProps.exportStatus) {
-			if (exportStatus === "inProgress") {
-				App.showSpinningCursor();
-			} else {
-				App.hideSpinningCursor();
-			}
+			if (exportStatus === "inProgress") App.showSpinningCursor();
+			else App.hideSpinningCursor();
 		}
 		if (importStatus !== prevProps.importStatus) {
-			if (importStatus === "inProgress") {
-				App.showSpinningCursor();
-			} else {
-				App.hideSpinningCursor();
-			}
+			if (importStatus === "inProgress") App.showSpinningCursor();
+			else App.hideSpinningCursor();
 		}
 	}
 
+	toggleThemeMenu = (): void => {
+		this.setState((state): State => ({ ...state, isThemeMenuOpen: !state.isThemeMenuOpen }));
+	};
+
+	setThemePref = (themePref: ThemePref): void => {
+		const { updateThemePref } = this.props;
+		updateThemePref(themePref);
+		this.setState({ isThemeMenuOpen: false });
+	};
+
 	render(): ReactNode {
-		const { fileExists, hashedPassword, overlay, theme } = this.props;
-		const { isLoading } = this.state;
-
-		// Render app page
+		const { fileExists, isUnlocked, overlay, theme, themePref } = this.props;
+		const { isLoading, isThemeMenuOpen } = this.state;
+		const showDiaryChrome = !isLoading && fileExists && isUnlocked;
 		let page;
-		if (isLoading) {
-			// Looking for diary file
-			page = <p>{`${translations.loading}…`}</p>;
-		} else if (!fileExists) {
-			// Diary file has not yet been created
-			page = <PasswordCreationContainer />;
-		} else if (hashedPassword === "") {
-			// Diary is locked
-			page = <PasswordPromptContainer />;
-		} else {
-			// Diary is unlocked
-			page = <Diary />;
-		}
-
-		const overlayComp = App.createOverlayComp(overlay);
+		if (isLoading) page = <p>{`${translations.loading}…`}</p>;
+		else if (!fileExists) page = <PasswordCreationContainer />;
+		else if (!isUnlocked) page = <PasswordPromptContainer />;
+		else page = <Diary />;
 
 		return (
 			<ThemeContext.Provider value={theme}>
-				{/* Everything below the "theme-*" div can be styled based on the theme */}
 				<div className={`theme-${theme}`}>
 					<div className="app">
-						<header onDoubleClick={toggleWindowSize} />
-						{page}
-						{
-							/* Render overlay (e.g. preferences or import dialog) over page if necessary */
-							overlayComp
-						}
+						<div className={`app-window ${showDiaryChrome ? "has-diary-chrome" : ""}`}>
+							{showDiaryChrome && (
+								<header className="app-titlebar" onDoubleClick={toggleWindowSize}>
+									<div className="app-brand">
+										<span>Mini Diary</span>
+										<small>Personal journal</small>
+									</div>
+									<div className="app-titlebar-actions">
+										<button
+											type="button"
+											className="app-icon-button"
+											aria-expanded={isThemeMenuOpen}
+											aria-label="Appearance settings"
+											onClick={this.toggleThemeMenu}
+										>
+											<SettingsIcon {...iconProps} />
+										</button>
+										{isThemeMenuOpen && (
+											<div className="theme-menu" role="dialog" aria-label="Appearance settings">
+												<p className="theme-menu-title">Appearance</p>
+												{(["auto", "light", "dark"] as ThemePref[]).map((option): ReactNode => (
+													<button
+														key={option}
+														type="button"
+														className={`theme-menu-option ${themePref === option ? "is-active" : ""}`}
+														onClick={(): void => this.setThemePref(option)}
+													>
+														{option === "auto" ? "System" : option.charAt(0).toUpperCase() + option.slice(1)}
+													</button>
+												))}
+											</div>
+										)}
+									</div>
+								</header>
+							)}
+							{page}
+							<Suspense fallback={null}>{App.createOverlayComp(overlay)}</Suspense>
+						</div>
 					</div>
 				</div>
 			</ThemeContext.Provider>

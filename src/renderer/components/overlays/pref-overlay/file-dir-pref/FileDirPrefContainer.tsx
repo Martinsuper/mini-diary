@@ -5,7 +5,7 @@ import { RootState, ThunkDispatchT } from "../../../../store/store";
 import FileDirPref, { DispatchProps, StateProps } from "./FileDirPref";
 
 const mapStateToProps = (state: RootState): StateProps => ({
-	hashedPassword: state.file.hashedPassword,
+	isUnlocked: state.file.isUnlocked,
 });
 
 const mapDispatchToProps = (dispatch: ThunkDispatchT): DispatchProps => ({

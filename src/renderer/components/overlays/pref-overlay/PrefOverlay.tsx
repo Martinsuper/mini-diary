@@ -9,7 +9,7 @@ import PasswordPrefContainer from "./password-pref/PasswordPrefContainer";
 import ThemePrefContainer from "./theme-pref/ThemePrefContainer";
 
 export interface StateProps {
-	hashedPassword: string;
+	isUnlocked: boolean;
 }
 
 type Props = StateProps;
@@ -18,9 +18,9 @@ type Props = StateProps;
  * Overlay window for user preferences
  */
 export default function PrefOverlay(props: Props): ReactElement {
-	const { hashedPassword } = props;
+	const { isUnlocked } = props;
 
-	const isLocked = hashedPassword === "";
+	const isLocked = !isUnlocked;
 
 	return (
 		<OverlayContainer className="pref-overlay">

@@ -28,5 +28,5 @@ export default function WordCount(props: Props): ReactElement {
 		wordCount = countWords(`${entry.title ?? ""}\n${entry.text ?? ""}`);
 	}
 
-	return <p className="word-count">{wordCount}</p>;
+	return <p className="word-count">{`${wordCount} words`}</p>;
 }

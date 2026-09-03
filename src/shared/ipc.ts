@@ -1,15 +1,36 @@
-import { Entries, Metadata } from "../renderer/types";
-import { OverlayType, Translations } from "./types";
+import { Entries, IndexDate, DiaryEntry, Metadata } from "../renderer/types";
+import { OverlayType } from "./types";
 
 export const IPC = {
-	app: { getInfo: "app:get-info", getTranslations: "app:get-translations", toggleWindowSize: "app:toggle-window-size" },
-	diary: { create: "diary:create", fileExists: "diary:file-exists", lock: "diary:lock", read: "diary:read", reset: "diary:reset", save: "diary:save", updatePassword: "diary:update-password" },
-	dialog: { confirmReset: "dialog:confirm-reset", selectDirectory: "dialog:select-directory", selectExportPath: "dialog:select-export-path", selectImportFile: "dialog:select-import-file", showError: "dialog:show-error" },
-	files: { moveDiary: "files:move-diary", readText: "files:read-text", writeExport: "files:write-export" },
-	preferences: { get: "preferences:get", set: "preferences:set" },
+	app: {
+		bootstrap: "app:bootstrap",
+		toggleWindowSize: "app:toggle-window-size",
+	},
+	dialogs: {
+		confirmReset: "dialogs:confirm-reset",
+		exportFile: "dialogs:export-file",
+		exportPdf: "dialogs:export-pdf",
+		importFile: "dialogs:import-file",
+		selectDirectory: "dialogs:select-directory",
+		showError: "dialogs:show-error",
+	},
+	diary: {
+		create: "diary:create",
+		fileExists: "diary:file-exists",
+		getPath: "diary:get-path",
+		lock: "diary:lock",
+		move: "diary:move",
+		read: "diary:read",
+		replaceEntries: "diary:replace-entries",
+		reset: "diary:reset",
+		save: "diary:save",
+		setDirectory: "diary:set-directory",
+		updatePassword: "diary:update-password",
+	},
+	preferences: { set: "preferences:set" },
 } as const;
 
-export type RendererEvent =
+export type MenuEvent =
 	| "nextDay"
 	| "previousDay"
 	| "goToToday"
@@ -30,6 +51,11 @@ export interface DiaryPayload {
 	metadata: Metadata;
 }
 
+export interface DiaryEntryUpdate {
+	entry: DiaryEntry | null;
+	indexDate: IndexDate;
+}
+
 export interface PreferenceValues {
 	allowFutureEntries: boolean;
 	enableSpellcheck: boolean;
@@ -39,36 +65,44 @@ export interface PreferenceValues {
 	theme: "auto" | "dark" | "light";
 }
 
+export interface BootstrapData {
+	appName: string;
+	lang: string;
+	preferences: PreferenceValues;
+	translations: Record<string, string>;
+}
+
 export interface MiniDiaryApi {
 	app: {
-		getInfo: () => Promise<{ name: string; version: string }>;
-		getTranslations: () => Promise<Partial<Translations>>;
-		on: (event: RendererEvent, listener: () => void) => () => void;
+		bootstrap: () => Promise<BootstrapData>;
 		toggleWindowSize: () => Promise<void>;
+	};
+	dialogs: {
+		confirmReset: (title: string, message: string, confirm: string, cancel: string) => Promise<boolean>;
+		exportFile: (defaultName: string, buttonLabel: string, content: string) => Promise<boolean>;
+		exportPdf: (defaultName: string, buttonLabel: string, markdown: string) => Promise<boolean>;
+		importFile: (extension: "json" | "txt") => Promise<string | null>;
+		selectDirectory: (buttonLabel: string) => Promise<string | null>;
+		showError: (title: string, message: string) => Promise<void>;
 	};
 	diary: {
 		create: (password: string) => Promise<DiaryPayload>;
 		fileExists: () => Promise<boolean>;
+		getPath: () => Promise<string>;
 		lock: () => Promise<void>;
+		move: (directory: string) => Promise<string>;
 		read: (password: string) => Promise<DiaryPayload>;
 		reset: () => Promise<void>;
-		save: (entries: Entries) => Promise<DiaryPayload>;
+		save: (update: DiaryEntryUpdate) => Promise<void>;
+		replaceEntries: (entries: Entries) => Promise<void>;
+		setDirectory: (directory: string) => Promise<void>;
 		updatePassword: (password: string, entries: Entries) => Promise<DiaryPayload>;
 	};
-	dialog: {
-		confirmReset: () => Promise<boolean>;
-		selectExportPath: (extension: string) => Promise<string | null>;
-		selectImportFile: (extensions: string[]) => Promise<string | null>;
-		selectDirectory: () => Promise<string | null>;
-		showError: (title: string, message: string) => Promise<void>;
-	};
-	files: {
-		moveDiary: (directory: string) => Promise<void>;
-		readText: (filePath: string) => Promise<string>;
-		writeExport: (filePath: string, content: string) => Promise<void>;
+	events: {
+		onMenu: (listener: (event: MenuEvent, overlay?: OverlayType) => void) => () => void;
+		onThemeChange: (listener: (theme: "light" | "dark") => void) => () => void;
 	};
 	preferences: {
-		get: () => Promise<PreferenceValues>;
-		set: <K extends keyof PreferenceValues>(key: K, value: PreferenceValues[K]) => Promise<void>;
+		set: (key: keyof PreferenceValues, value: PreferenceValues[keyof PreferenceValues]) => Promise<void>;
 	};
 }

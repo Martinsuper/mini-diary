@@ -2,7 +2,6 @@ import { app, BrowserWindow } from "electron";
 import path from "path";
 
 import contextMenu from "electron-context-menu";
-import electronDebug from "electron-debug";
 
 import { initLogger } from "../shared/logger";
 import DiaryService from "./services/diaryService";
@@ -12,8 +11,14 @@ import { buildMenu } from "./menu/menu";
 import updateApp from "./updater";
 import { getWindow, setWindow } from "./window";
 
+if (process.env.ELECTRON_USER_DATA_DIR) {
+	app.setPath("userData", process.env.ELECTRON_USER_DATA_DIR);
+}
+
 initLogger();
-electronDebug();
+if (process.env.NODE_ENV !== "production") {
+	void import("electron-debug").then(({ default: electronDebug }) => electronDebug());
+}
 const diaryService = new DiaryService();
 
 contextMenu({
@@ -55,6 +60,11 @@ async function createWindow(): Promise<BrowserWindow> {
 // Quit app when all of its windows have been closed
 app.on("window-all-closed", (): void => {
 	app.quit();
+});
+
+app.on("before-quit", event => {
+	event.preventDefault();
+	void diaryService.flush().finally(() => app.exit());
 });
 
 // On app activation (e.g. when clicking dock icon), re-create BrowserWindow if necessary

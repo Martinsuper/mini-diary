@@ -4,7 +4,7 @@ import { translations } from "../../../../utils/i18n";
 import DiaryResetButtonContainer from "./diary-reset-button/DiaryResetButtonContainer";
 
 export interface StateProps {
-	hashedPassword: string;
+	isUnlocked: boolean;
 }
 
 export interface DispatchProps {
@@ -14,8 +14,8 @@ export interface DispatchProps {
 type Props = StateProps & DispatchProps;
 
 export default function FileDirPref(props: Props): ReactElement {
-	const { hashedPassword, testFileExists } = props;
-	const isLocked = hashedPassword === "";
+	const { isUnlocked, testFileExists } = props;
+	const isLocked = !isUnlocked;
 	const [filePath, setFilePath] = useState("");
 
 	useEffect((): void => {

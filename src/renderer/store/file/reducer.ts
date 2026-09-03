@@ -8,8 +8,8 @@ import {
 	ENCRYPT_SUCCESS,
 	FileAction,
 	FileState,
+	SET_ENTRIES,
 	SET_FILE_EXISTS,
-	SET_HASHED_PASSWORD,
 } from "./types";
 
 const initialState: FileState = {
@@ -19,7 +19,7 @@ const initialState: FileState = {
 	encryptStatus: "idle",
 	entries: {},
 	fileExists: false,
-	hashedPassword: "",
+	isUnlocked: false,
 };
 
 function fileReducer(state = initialState, action: FileAction): FileState {
@@ -28,7 +28,7 @@ function fileReducer(state = initialState, action: FileAction): FileState {
 			return {
 				...state,
 				entries: {},
-				hashedPassword: "",
+				isUnlocked: false,
 			};
 		}
 		case DECRYPT_IN_PROGRESS: {
@@ -51,6 +51,7 @@ function fileReducer(state = initialState, action: FileAction): FileState {
 				decryptErrorMsg: "",
 				decryptStatus: "idle",
 				entries: action.payload.entries,
+				isUnlocked: true,
 			};
 		}
 		case ENCRYPT_IN_PROGRESS: {
@@ -71,18 +72,20 @@ function fileReducer(state = initialState, action: FileAction): FileState {
 				...state,
 				encryptStatus: "idle",
 				entries: action.payload.entries,
+				fileExists: true,
+				isUnlocked: true,
+			};
+		}
+		case SET_ENTRIES: {
+			return {
+				...state,
+				entries: action.payload.entries,
 			};
 		}
 		case SET_FILE_EXISTS: {
 			return {
 				...state,
 				fileExists: action.payload.fileExists,
-			};
-		}
-		case SET_HASHED_PASSWORD: {
-			return {
-				...state,
-				hashedPassword: action.payload.hashedPassword,
 			};
 		}
 		default:

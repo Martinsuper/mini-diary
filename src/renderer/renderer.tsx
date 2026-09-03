@@ -5,24 +5,31 @@ import ReactDOM from "react-dom";
 import { Provider } from "react-redux";
 
 import { initLogger } from "../shared/logger";
-import AppContainer from "./components/AppContainer";
-import initIpcListeners from "./electron/ipcRenderer/listeners";
-import store from "./store/store";
-import { initI18n } from "./utils/i18n";
+import { initializeBootstrap } from "./bootstrap";
 
-initLogger();
-initIpcListeners();
-initI18n();
+async function start(): Promise<void> {
+	initializeBootstrap(await window.miniDiary.app.bootstrap());
+	const [{ default: AppContainer }, { default: initIpcListeners }, { default: store }, { initI18n }] = await Promise.all([
+		import("./components/AppContainer"),
+		import("./electron/ipcRenderer/listeners"),
+		import("./store/store"),
+		import("./utils/i18n"),
+	]);
 
-// Create 'root' div
-const root = document.createElement("div");
-root.id = "root";
-document.body.appendChild(root);
+	initLogger();
+	initIpcListeners();
+	initI18n();
 
-// Render React app inside root
-ReactDOM.render(
-	<Provider store={store}>
-		<AppContainer />
-	</Provider>,
-	root,
-);
+	const root = document.createElement("div");
+	root.id = "root";
+	document.body.appendChild(root);
+
+	ReactDOM.render(
+		<Provider store={store}>
+			<AppContainer />
+		</Provider>,
+		root,
+	);
+}
+
+void start();

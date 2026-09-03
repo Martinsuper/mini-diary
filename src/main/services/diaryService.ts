@@ -4,11 +4,12 @@ import path from "path";
 
 import { app } from "electron";
 
-import { DiaryPayload } from "../../shared/ipc";
+import { DiaryEntryUpdate, DiaryPayload } from "../../shared/ipc";
 import { Entries, Metadata, MiniDiaryJson } from "../../renderer/types";
 
 const FILE_NAME = "mini-diary.txt";
 const FORMAT = "mini-diary/v2";
+const SAVE_DELAY = 1000;
 
 interface EncryptedDiary {
 	ciphertext: string;
@@ -19,6 +20,7 @@ interface EncryptedDiary {
 }
 
 interface Session {
+	entries: Entries;
 	key: Buffer;
 	metadata: Metadata;
 	salt: Buffer;
@@ -51,7 +53,15 @@ function isDiaryPayload(value: unknown): value is MiniDiaryJson {
 export default class DiaryService {
 	private directory: string;
 
+	private saveTimer: NodeJS.Timeout | null = null;
+
 	private session: Session | null = null;
+
+	private writePromise: Promise<void> = Promise.resolve();
+
+	private writeQueued = false;
+
+	private writing = false;
 
 	constructor() {
 		this.directory = app.getPath("userData");
@@ -73,6 +83,7 @@ export default class DiaryService {
 	}
 
 	async moveTo(directory: string): Promise<void> {
+		await this.flush();
 		const destination = path.resolve(directory, FILE_NAME);
 		try {
 			await fs.access(destination);
@@ -96,10 +107,10 @@ export default class DiaryService {
 	async create(password: string): Promise<DiaryPayload> {
 		const salt = crypto.randomBytes(16);
 		const metadata = this.metadata();
-		this.session = { key: await deriveKey(password, salt), metadata, salt };
-		const payload = { entries: {}, metadata };
-		await this.write(payload);
-		return payload;
+		const entries = {};
+		this.session = { entries, key: await deriveKey(password, salt), metadata, salt };
+		await this.write();
+		return { entries, metadata };
 	}
 
 	async read(password: string): Promise<DiaryPayload> {
@@ -113,33 +124,49 @@ export default class DiaryService {
 		const plaintext = Buffer.concat([decipher.update(Buffer.from(encrypted.ciphertext, "base64")), decipher.final()]);
 		const payload = JSON.parse(plaintext.toString("utf8")) as unknown;
 		if (!isDiaryPayload(payload)) throw Error("Diary file has an invalid payload");
-		this.session = { key, metadata: payload.metadata, salt };
+		this.session = { entries: payload.entries, key, metadata: payload.metadata, salt };
 		return payload;
 	}
 
-	async save(entries: Entries): Promise<DiaryPayload> {
+	save(update: DiaryEntryUpdate): void {
 		const session = this.requireSession();
-		const payload = { entries, metadata: { ...session.metadata, dateUpdated: new Date().toISOString() } };
-		session.metadata = payload.metadata;
-		await this.write(payload);
-		return payload;
+		if (update.entry) session.entries[update.indexDate] = update.entry;
+		else delete session.entries[update.indexDate];
+		this.scheduleWrite();
+	}
+
+	async replaceEntries(entries: Entries): Promise<void> {
+		this.requireSession().entries = entries;
+		this.queueWrite();
+		await this.writePromise;
 	}
 
 	async updatePassword(password: string, entries: Entries): Promise<DiaryPayload> {
+		await this.flush();
 		const metadata = this.requireSession().metadata;
-		this.lock();
+		this.lockSession();
 		const salt = crypto.randomBytes(16);
-		this.session = { key: await deriveKey(password, salt), metadata, salt };
-		return this.save(entries);
+		this.session = { entries, key: await deriveKey(password, salt), metadata, salt };
+		await this.write();
+		return { entries, metadata: this.session.metadata };
 	}
 
-	lock(): void {
-		if (this.session) this.session.key.fill(0);
-		this.session = null;
+	async flush(): Promise<void> {
+		if (this.saveTimer) {
+			clearTimeout(this.saveTimer);
+			this.saveTimer = null;
+			this.queueWrite();
+		}
+		await this.writePromise;
+	}
+
+	async lock(): Promise<void> {
+		await this.flush();
+		this.lockSession();
 	}
 
 	async reset(): Promise<void> {
-		this.lock();
+		await this.lock();
 		await fs.unlink(this.filePath());
 	}
 
@@ -156,8 +183,37 @@ export default class DiaryService {
 		return this.session;
 	}
 
-	private async write(payload: DiaryPayload): Promise<void> {
+	private lockSession(): void {
+		if (this.session) this.session.key.fill(0);
+		this.session = null;
+	}
+
+	private queueWrite(): void {
+		this.writeQueued = true;
+		if (this.writing) return;
+		this.writing = true;
+		this.writePromise = this.writePromise.catch(() => undefined).then(async (): Promise<void> => {
+			while (this.writeQueued) {
+				this.writeQueued = false;
+				await this.write();
+			}
+		}).finally((): void => {
+			this.writing = false;
+		});
+	}
+
+	private scheduleWrite(): void {
+		if (this.saveTimer) clearTimeout(this.saveTimer);
+		this.saveTimer = setTimeout((): void => {
+			this.saveTimer = null;
+			this.queueWrite();
+		}, SAVE_DELAY);
+	}
+
+	private async write(): Promise<void> {
 		const session = this.requireSession();
+		const payload = { entries: session.entries, metadata: { ...session.metadata, dateUpdated: new Date().toISOString() } };
+		session.metadata = payload.metadata;
 		const nonce = crypto.randomBytes(12);
 		const cipher = crypto.createCipheriv("aes-256-gcm", session.key, nonce);
 		const ciphertext = Buffer.concat([cipher.update(JSON.stringify(payload), "utf8"), cipher.final()]);
@@ -169,7 +225,7 @@ export default class DiaryService {
 			tag: cipher.getAuthTag().toString("base64"),
 		});
 		const target = this.filePath();
-		const temporary = `${target}.${process.pid}.tmp`;
+		const temporary = `${target}.${process.pid}.${crypto.randomBytes(8).toString("hex")}.tmp`;
 		await fs.mkdir(path.dirname(target), { recursive: true });
 		await fs.writeFile(temporary, serialized, { encoding: "utf8", mode: 0o600 });
 		await fs.rename(temporary, target);

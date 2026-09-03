@@ -4,12 +4,15 @@
 		"forceConsistentCasingInFileNames": true,
 		"module": "commonjs",
 		"moduleResolution": "node",
+		"jsx": "react",
 		"noEmit": true,
 		"noUnusedLocals": true,
 		"noUnusedParameters": true,
 		"resolveJsonModule": true,
 		"skipLibCheck": true,
 		"strict": true,
+		"strictPropertyInitialization": false,
+		"useUnknownInCatchVariables": false,
 		"target": "ES2022"
 	},
 	"include": ["src/**/*.ts", "src/**/*.tsx", "webpack.*.ts", "test/**/*.ts"]

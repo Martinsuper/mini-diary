@@ -1,5 +1,5 @@
 import { Entries, MiniDiaryJson } from "../../types";
-import { getMetadata } from "../diary/diaryFile";
+import { createDate } from "../../utils/dateFormat";
 import sortEntries from "./sortEntries";
 
 /**
@@ -17,7 +17,11 @@ export function convertToMiniDiaryJson(entries: Entries): Promise<string> {
 
 		// Add metadata
 		const content: MiniDiaryJson = {
-			metadata: getMetadata(),
+			metadata: {
+				application: "Mini Diary",
+				version: "v0.0.0",
+				dateUpdated: createDate().toString(),
+			},
 			entries: entriesJson,
 		};
 		resolve(`${JSON.stringify(content, null, "\t")}\n`);

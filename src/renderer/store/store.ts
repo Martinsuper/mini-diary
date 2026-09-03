@@ -29,7 +29,7 @@ export type ThunkDispatchT = ThunkDispatch<RootState, void, RootAction>;
 
 // Set up middleware
 let middleware = [thunk as ThunkMiddleware<RootState, RootAction>];
-if (process.env.NODE_ENV !== "production") {
+if (typeof process !== "undefined" && process.env.NODE_ENV !== "production") {
 	middleware = [...middleware, createLogger()];
 }
 

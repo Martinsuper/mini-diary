@@ -9,7 +9,7 @@ const mapStateToProps = (state: RootState): StateProps => ({
 });
 
 const mapDispatchToProps = (dispatch: ThunkDispatchT): DispatchProps => ({
-	runImport: (importFilePath: string): void => dispatch(runImport(importFilePath)),
+	runImport: (content: string): void => dispatch(runImport(content)),
 });
 
 export default connect(mapStateToProps, mapDispatchToProps)(ImportOverlay);

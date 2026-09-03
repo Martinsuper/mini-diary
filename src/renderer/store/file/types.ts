@@ -1,8 +1,6 @@
 import { Action } from "redux";
 
-import { Status, Entries } from "../../types";
-
-// State
+import { Entries, Status } from "../../types";
 
 export interface FileState {
 	decryptErrorMsg: string;
@@ -11,22 +9,18 @@ export interface FileState {
 	encryptStatus: Status;
 	entries: Entries;
 	fileExists: boolean;
-	hashedPassword: string;
+	isUnlocked: boolean;
 }
 
-// Action types
-
 export const CLEAR_FILE_STATE = "CLEAR_FILE_STATE";
-export const DECRYPT_IN_PROGRESS = "DECRYPT_IN_PROGRESS";
 export const DECRYPT_ERROR = "DECRYPT_ERROR";
+export const DECRYPT_IN_PROGRESS = "DECRYPT_IN_PROGRESS";
 export const DECRYPT_SUCCESS = "DECRYPT_SUCCESS";
-export const ENCRYPT_IN_PROGRESS = "ENCRYPT_IN_PROGRESS";
 export const ENCRYPT_ERROR = "ENCRYPT_ERROR";
+export const ENCRYPT_IN_PROGRESS = "ENCRYPT_IN_PROGRESS";
 export const ENCRYPT_SUCCESS = "ENCRYPT_SUCCESS";
+export const SET_ENTRIES = "SET_ENTRIES";
 export const SET_FILE_EXISTS = "SET_FILE_EXISTS";
-export const SET_HASHED_PASSWORD = "SET_HASHED_PASSWORD";
-
-// Actions
 
 export interface ClearFileStateAction extends Action {
 	type: typeof CLEAR_FILE_STATE;
@@ -38,16 +32,12 @@ export interface SetDecryptInProgressAction extends Action {
 
 export interface SetDecryptErrorAction extends Action {
 	type: typeof DECRYPT_ERROR;
-	payload: {
-		decryptErrorMsg: string;
-	};
+	payload: { decryptErrorMsg: string };
 }
 
 export interface SetDecryptSuccessAction extends Action {
 	type: typeof DECRYPT_SUCCESS;
-	payload: {
-		entries: Entries;
-	};
+	payload: { entries: Entries };
 }
 
 export interface SetEncryptInProgressAction extends Action {
@@ -56,30 +46,22 @@ export interface SetEncryptInProgressAction extends Action {
 
 export interface SetEncryptErrorAction extends Action {
 	type: typeof ENCRYPT_ERROR;
-	payload: {
-		encryptErrorMsg: string;
-	};
+	payload: { encryptErrorMsg: string };
 }
 
 export interface SetEncryptSuccessAction extends Action {
 	type: typeof ENCRYPT_SUCCESS;
-	payload: {
-		entries: Entries;
-	};
+	payload: { entries: Entries };
+}
+
+export interface SetEntriesAction extends Action {
+	type: typeof SET_ENTRIES;
+	payload: { entries: Entries };
 }
 
 export interface SetFileExistsAction extends Action {
 	type: typeof SET_FILE_EXISTS;
-	payload: {
-		fileExists: boolean;
-	};
-}
-
-export interface SetHashedPasswordAction extends Action {
-	type: typeof SET_HASHED_PASSWORD;
-	payload: {
-		hashedPassword: string;
-	};
+	payload: { fileExists: boolean };
 }
 
 export type FileAction =
@@ -90,5 +72,5 @@ export type FileAction =
 	| SetEncryptInProgressAction
 	| SetEncryptErrorAction
 	| SetEncryptSuccessAction
-	| SetFileExistsAction
-	| SetHashedPasswordAction;
+	| SetEntriesAction
+	| SetFileExistsAction;

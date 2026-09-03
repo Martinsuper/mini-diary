@@ -17,6 +17,9 @@ export default class Sidebar extends PureComponent<Props, {}> {
 			<div className="sidebar">
 				<SearchBarContainer />
 				{searchKey === "" ? <CalendarContainer /> : <SearchResultsContainer />}
+				<footer className="sidebar-save-state" role="status">
+					<span />Saved automatically
+				</footer>
 			</div>
 		);
 	}

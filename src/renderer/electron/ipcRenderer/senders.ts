@@ -1,18 +1,22 @@
 import { Translations } from "../../../shared/types";
+import { getBootstrap } from "../../bootstrap";
 
 export function getLang(): string {
-	return window.miniDiary.app.getLang();
+	return getBootstrap().lang;
 }
 
 export function getTranslation(
 	i18nKey: keyof Translations,
 	substitutions: Record<string, string>,
 ): string {
-	return window.miniDiary.app.getTranslation(i18nKey, substitutions);
+	return Object.entries(substitutions).reduce(
+		(translation, [key, replacement]) => translation.replace(new RegExp(`{${key}}`, "g"), replacement),
+		getBootstrap().translations[i18nKey],
+	);
 }
 
 export function getTranslations(): Record<string, string> {
-	return window.miniDiary.app.getTranslations();
+	return getBootstrap().translations;
 }
 
 export function disableMenuItems(): void {}

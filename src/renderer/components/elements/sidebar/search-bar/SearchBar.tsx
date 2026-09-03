@@ -1,3 +1,4 @@
+import SearchIcon from "feather-icons/dist/icons/search.svg";
 import ClearIcon from "feather-icons/dist/icons/x.svg";
 import debounce from "lodash.debounce";
 import { Moment } from "moment-timezone";
@@ -30,11 +31,7 @@ export default class SearchBar extends PureComponent<Props, State> {
 	constructor(props: Props) {
 		super(props);
 
-		this.state = {
-			newSearchKey: props.searchKey,
-		};
-
-		// Function bindings
+		this.state = { newSearchKey: props.searchKey };
 		this.onChange = this.onChange.bind(this);
 		this.onTodaySelection = this.onTodaySelection.bind(this);
 		this.clearSearchKey = this.clearSearchKey.bind(this);
@@ -44,49 +41,38 @@ export default class SearchBar extends PureComponent<Props, State> {
 
 	onChange(e: ChangeEvent<HTMLInputElement>): void {
 		const newSearchKey = e.target.value;
-		this.setState({
-			newSearchKey,
-		});
-		if (newSearchKey === "") {
-			this.updateSearchKey(newSearchKey);
-		}
+		this.setState({ newSearchKey });
+		if (newSearchKey === "") this.updateSearchKey(newSearchKey);
 		this.updateSearchKeyDebounced(newSearchKey);
 	}
 
 	onTodaySelection(): void {
 		const { setDateSelected } = this.props;
-
-		const today = createDate();
-		setDateSelected(today);
+		setDateSelected(createDate());
 	}
 
 	clearSearchKey(): void {
-		this.setState({
-			newSearchKey: "",
-		});
+		this.setState({ newSearchKey: "" });
 		this.updateSearchKey("");
 	}
 
 	updateSearchKey(newSearchKey: string): void {
 		const { search } = this.props;
-
 		search(newSearchKey);
 	}
 
 	render(): ReactNode {
-		const { dateSelected } = this.props;
 		const { newSearchKey } = this.state;
-
-		const today = createDate();
-		const isToday = dateSelected.isSame(today, "day");
 
 		return (
 			<div className="view-selector">
 				<div className="search-input-wrapper">
+					<SearchIcon className="search-input-icon" {...iconProps} />
 					<input
 						type="search"
 						className="search-input"
 						placeholder={`${translations.search}…`}
+						aria-label={translations.search}
 						spellCheck={false}
 						value={newSearchKey}
 						onChange={this.onChange}
@@ -96,6 +82,7 @@ export default class SearchBar extends PureComponent<Props, State> {
 							<button
 								type="button"
 								className="button button-invisible"
+								aria-label={translations.clear}
 								onClick={this.clearSearchKey}
 							>
 								<ClearIcon {...iconProps} title={translations.clear} />
@@ -106,7 +93,8 @@ export default class SearchBar extends PureComponent<Props, State> {
 				<button
 					type="button"
 					className="button button-invisible button-today"
-					disabled={isToday}
+					aria-label={translations.today}
+					title={translations.today}
 					onClick={this.onTodaySelection}
 				>
 					<TodayIcon {...iconProps} title={translations.today} />

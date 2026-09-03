@@ -1,3 +1,5 @@
+import { getBootstrap } from "../../bootstrap";
+import { Weekday } from "../../types";
 import { getThemeFromPref } from "../../utils/native-theme";
 import {
 	AppAction,
@@ -11,14 +13,15 @@ import {
 	SET_HIDE_TITLES,
 } from "./types";
 
-const themePref = window.miniDiary.preferences.get<AppState["themePref"]>("theme");
+const { preferences } = getBootstrap();
+const themePref = preferences.theme;
 const theme = getThemeFromPref(themePref);
 
 const initialState: AppState = {
-	allowFutureEntries: window.miniDiary.preferences.get<boolean>("allowFutureEntries"),
-	enableSpellcheck: window.miniDiary.preferences.get<boolean>("enableSpellcheck"),
-	firstDayOfWeek: window.miniDiary.preferences.get<AppState["firstDayOfWeek"]>("firstDayOfWeek"),
-	hideTitles: window.miniDiary.preferences.get<boolean>("hideTitles"),
+	allowFutureEntries: preferences.allowFutureEntries,
+	enableSpellcheck: preferences.enableSpellcheck,
+	firstDayOfWeek: preferences.firstDayOfWeek as Weekday | null,
+	hideTitles: preferences.hideTitles,
 	overlay: "none",
 	theme,
 	themePref,

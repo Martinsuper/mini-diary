@@ -102,13 +102,8 @@ export default class Editor extends PureComponent<Props, State> {
 		};
 	}
 
-	componentDidMount = (): void => {
-		// Save entry before app is closed
-		window.addEventListener("unload", this.saveEntry);
-	};
-
 	componentWillUnmount = (): void => {
-		window.removeEventListener("unload", this.saveEntry);
+		this.saveEntryDebounced.flush();
 	};
 
 	onTextChange = (textEditorState: EditorState): void => {
@@ -151,8 +146,8 @@ export default class Editor extends PureComponent<Props, State> {
 	};
 
 	saveEntry = (): void => {
-		const { dateSelected, updateEntry } = this.props;
-		const { textEditorState, titleEditorState } = this.state;
+		const { updateEntry } = this.props;
+		const { dateSelected, textEditorState, titleEditorState } = this.state;
 
 		const indexDate = toIndexDate(dateSelected);
 		const title = titleEditorState.getCurrentContent().getPlainText();
@@ -185,7 +180,8 @@ export default class Editor extends PureComponent<Props, State> {
 								keyBindingFn={Editor.titleKeyBindingFn}
 								onBlur={this.saveEntry}
 								onChange={this.onTitleChange}
-								placeholder={translations["add-a-title"]}
+								ariaLabel={translations["add-a-title"]}
+									placeholder={translations["add-a-title"]}
 								spellCheck={enableSpellcheck}
 							/>
 						</div>
@@ -199,7 +195,8 @@ export default class Editor extends PureComponent<Props, State> {
 							ref={(textEditor: PluginEditor): void => {
 								this.textEditor = textEditor;
 							}}
-							placeholder={isOl || isUl ? "" : `${translations["write-something"]}…`}
+							ariaLabel={translations["write-something"]}
+								placeholder={isOl || isUl ? "" : `${translations["write-something"]}…`}
 							plugins={plugins}
 							spellCheck={enableSpellcheck}
 						/>
