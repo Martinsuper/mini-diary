@@ -30,9 +30,59 @@ $editor-padding-large: 2 * $spacing-abs-large;
 	font-size: 150%;
 }
 
-// Fill editor height
-.editor-text-wrapper {
+.editor-title-input {
+	@include color("text");
+	width: 100%;
+	padding: 0;
+	appearance: none;
+	background: transparent;
+	border: 0 !important;
+	border-radius: 0;
+	box-shadow: none !important;
+	outline: 0;
+	font: inherit;
+	font-weight: inherit;
+
+	&.is-empty {
+		@include color("text-placeholder");
+	}
+}
+
+.editor-text-wrapper,
+.lexical-editor,
+.lexical-content-editable {
 	flex: 1;
+	min-height: 0;
+}
+
+.lexical-editor {
+	position: relative;
+	height: 100%;
+}
+
+.lexical-content-editable {
+	height: calc(100% - 1rem);
+	outline: 0;
+
+	@media (max-width: $screen-desktop) {
+		padding-bottom: $editor-padding-small;
+	}
+
+	@media (min-width: $screen-desktop + 1px) {
+		padding-bottom: $editor-padding-large;
+	}
+
+	p {
+		margin-top: $paragraph-spacing;
+	}
+}
+
+.lexical-placeholder {
+	@include color("text-placeholder");
+	position: absolute;
+	top: 0;
+	left: 0;
+	pointer-events: none;
 }
 
 .editor-toolbar {
@@ -55,40 +105,4 @@ $editor-padding-large: 2 * $spacing-abs-large;
 .word-count {
 	@include color("text-faded");
 	line-height: 1;
-}
-
-// stylelint-disable selector-class-pattern
-
-// Fill editor height (and compensate for paragraph spacing between the title and text)
-.DraftEditor-root {
-	height: calc(100% - 1rem) !important; // stylelint-disable-line declaration-no-important
-}
-
-// Fill editor height
-.DraftEditor-editorContainer {
-	height: 100%;
-}
-
-// Placeholder text
-.public-DraftEditorPlaceholder-inner {
-	@include color("text-placeholder");
-}
-
-// Text editor
-.editor-text-wrapper {
-	// Spacing
-	.DraftEditor-root {
-		@media (max-width: $screen-desktop) {
-			padding-bottom: $editor-padding-small;
-		}
-
-		@media (min-width: $screen-desktop + 1px) {
-			padding-bottom: $editor-padding-large;
-		}
-	}
-
-	// Paragraph spacing
-	.public-DraftStyleDefault-block {
-		margin-top: $paragraph-spacing;
-	}
 }

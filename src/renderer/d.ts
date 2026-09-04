@@ -8,6 +8,4 @@ declare module "*.svg" {
 	export = value;
 }
 
-declare module "markdown-draft-js";
-
 declare module "strip-markdown";

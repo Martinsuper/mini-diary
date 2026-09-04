@@ -186,7 +186,7 @@ textarea {
 }
 
 .view-selector {
-	margin-bottom: 32px;
+	margin-bottom: 12px;
 }
 
 .search-input-wrapper {
@@ -248,6 +248,10 @@ textarea {
 	display: block;
 }
 
+.DayPicker-Weekdays {
+	width: 100%;
+}
+
 .DayPicker-Body {
 	grid-template-rows: none;
 }
@@ -303,16 +307,21 @@ textarea {
 	font-weight: 500;
 }
 
-.DayPicker-Day--today:not(.DayPicker-Day--outside) {
+.DayPicker-Day--today:not(.DayPicker-Day--outside):not(.DayPicker-Day--selected) {
 	color: var(--ui-accent);
 	border: 1px solid rgba($ui-accent, 0.62);
 }
 
-.theme-light .DayPicker-Day--selected,
-.theme-dark .DayPicker-Day--selected {
+.DayPicker-Day--selected {
+	background: transparent !important;
+	border-color: transparent !important;
+	box-shadow: none !important;
+}
+
+.theme-light .DayPicker-Day--selected .DayPicker-DayButton,
+.theme-dark .DayPicker-Day--selected .DayPicker-DayButton {
 	color: #ffffff !important;
 	background: var(--ui-accent) !important;
-	border-color: var(--ui-accent) !important;
 	box-shadow: none !important;
 }
 
@@ -402,18 +411,42 @@ textarea {
 	line-height: 1.35;
 }
 
+.editor-title-wrapper .editor-title-input {
+	box-sizing: border-box;
+	display: block;
+	height: 46px;
+	padding: 0;
+	background: transparent !important;
+	border: 0 !important;
+	border-color: transparent !important;
+	box-shadow: none !important;
+	line-height: inherit;
+}
+
 .editor-text-wrapper {
 	color: var(--ui-text);
 	font-size: 16px;
 	line-height: 1.78;
 }
 
-.public-DraftEditorPlaceholder-inner {
+.lexical-content-editable {
+	line-height: inherit;
+}
+
+.lexical-content-editable > p {
+	margin-top: 0;
+	margin-bottom: 1em;
+}
+
+.lexical-placeholder {
 	color: var(--ui-muted) !important;
+	line-height: inherit;
 }
 
 .editor-toolbar {
-	min-height: 50px;
+	height: 50px;
+	min-height: 0;
+	box-sizing: border-box;
 	padding: 0 12px !important;
 	background: var(--ui-surface) !important;
 	border: 1px solid var(--ui-border);
@@ -424,6 +457,7 @@ textarea {
 .formatting-buttons {
 	display: flex;
 	align-items: center;
+	height: 40px;
 	gap: 4px;
 }
 

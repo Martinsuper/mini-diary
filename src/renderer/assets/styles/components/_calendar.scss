@@ -46,6 +46,56 @@
 	justify-content: center;
 }
 
+.DayPicker-Body,
+.DayPicker-WeekdaysRow {
+	width: 100%;
+	border-collapse: collapse;
+}
+
+.DayPicker-Body thead {
+	display: block;
+	width: 100%;
+}
+
+.DayPicker-Body,
+.DayPicker-WeekdaysRow,
+.DayPicker-Week {
+	display: grid;
+	grid-template-columns: repeat(7, minmax(0, 1fr));
+}
+
+.DayPicker-Body {
+	grid-template-rows: none;
+}
+
+.DayPicker-WeekdaysRow,
+.DayPicker-Week {
+	width: 100%;
+}
+
+.DayPicker-Day {
+	padding: 0;
+}
+
+.DayPicker-Day .DayPicker-DayButton {
+	@include color("text");
+	box-sizing: border-box !important;
+	display: grid !important;
+	width: 34px !important;
+	height: 34px !important;
+	place-items: center;
+	padding: 0 !important;
+	font: inherit !important;
+	line-height: 1 !important;
+	background: transparent !important;
+	border: 0 !important;
+	border-radius: 50% !important;
+}
+
+.DayPicker-Day--disabled .DayPicker-DayButton {
+	@include color("text-disabled");
+}
+
 .DayPicker-WeekdaysRow {
 	height: $input-height;
 }
@@ -67,11 +117,13 @@
 	}
 }
 
-.DayPicker-Day--disabled {
+.DayPicker-Day--disabled,
+.DayPicker-Day--disabled .DayPicker-DayButton {
 	@include color("text-disabled");
 }
 
-.DayPicker-Day--hasEntry {
+.DayPicker-Day--hasEntry,
+.DayPicker-Day--hasEntry .DayPicker-DayButton {
 	font-weight: $font-weight-bold;
 
 	&:not(.DayPicker-Day--selected) {
@@ -79,7 +131,8 @@
 	}
 }
 
-.DayPicker-Day--today:not(.DayPicker-Day--outside) {
+.DayPicker-Day--today:not(.DayPicker-Day--outside):not(.DayPicker-Day--selected),
+.DayPicker-Day--today:not(.DayPicker-Day--outside):not(.DayPicker-Day--selected) .DayPicker-DayButton {
 	@include border-color("main");
 	border-style: solid;
 	border-width: 2px;
@@ -90,6 +143,15 @@
 }
 
 .DayPicker-Day--selected {
+	background: transparent;
+	border-color: transparent;
+
+	&:hover {
+		background: transparent;
+	}
+}
+
+.DayPicker-Day--selected .DayPicker-DayButton {
 	@include color("text-button");
 	@include background-color("main");
 	@include box-shadow($shadow-size-outer, "shadow-outer");

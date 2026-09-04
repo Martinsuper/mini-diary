@@ -1,6 +1,6 @@
-import { applyMiddleware, combineReducers, createStore } from "redux";
+import { applyMiddleware, combineReducers, createStore, Store } from "redux";
 import { createLogger } from "redux-logger";
-import thunk, { ThunkAction, ThunkDispatch, ThunkMiddleware } from "redux-thunk";
+import { ThunkAction, ThunkDispatch, thunk } from "redux-thunk";
 
 import appReducer from "./app/reducer";
 import { AppAction } from "./app/types";
@@ -13,7 +13,6 @@ import { FileAction } from "./file/types";
 import importReducer from "./import/reducer";
 import { ImportAction } from "./import/types";
 
-// Combine reducers
 const rootReducer = combineReducers({
 	app: appReducer,
 	diary: diaryReducer,
@@ -24,14 +23,10 @@ const rootReducer = combineReducers({
 
 export type RootAction = AppAction | DiaryAction | ExportAction | FileAction | ImportAction;
 export type RootState = ReturnType<typeof rootReducer>;
-export type ThunkActionT = ThunkAction<void, RootState, void, RootAction>;
-export type ThunkDispatchT = ThunkDispatch<RootState, void, RootAction>;
+export type ThunkActionT = ThunkAction<void, RootState, undefined, RootAction>;
+export type ThunkDispatchT = ThunkDispatch<RootState, undefined, RootAction>;
 
-// Set up middleware
-let middleware = [thunk as ThunkMiddleware<RootState, RootAction>];
-if (typeof process !== "undefined" && process.env.NODE_ENV !== "production") {
-	middleware = [...middleware, createLogger()];
-}
+const middleware = process.env.NODE_ENV !== "production" ? [thunk, createLogger()] : [thunk];
+const store = createStore(rootReducer as any, applyMiddleware(...(middleware as any)) as any) as Store<RootState, RootAction> & { dispatch: ThunkDispatchT };
 
-// Create store
-export default createStore(rootReducer, applyMiddleware(...middleware));
+export default store;

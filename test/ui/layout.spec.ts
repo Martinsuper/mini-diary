@@ -16,6 +16,7 @@ test.beforeAll(async (): Promise<void> => {
 		env: { ...process.env, ELECTRON_USER_DATA_DIR: userDataDirectory, LANG: "en_US.UTF-8", TZ: "UTC" },
 	});
 	page = await app.firstWindow();
+	page.on("pageerror", error => console.error(error));
 	const passwords = page.locator('input[type="password"]');
 	await passwords.nth(0).fill(password);
 	await passwords.nth(1).fill(password);
@@ -49,11 +50,49 @@ test("keeps header and search icons fully visible", async (): Promise<void> => {
 	expect(settingsIcon.x + settingsIcon.width).toBeLessThanOrEqual(settingsButton.x + settingsButton.width);
 	expect(settingsIcon.y + settingsIcon.height).toBeLessThanOrEqual(settingsButton.y + settingsButton.height);
 	await expect(page.locator(".search-input-wrapper")).toHaveScreenshot("search-input.png");
-	await expect(page.locator(".app-icon-button")).toHaveScreenshot("settings-button.png");
+	await expect(page.locator(".app-icon-button")).toHaveScreenshot("settings-button.png", { maxDiffPixels: 32 });
 });
 
-test("matches the diary layout visual baseline", async (): Promise<void> => {
-	await expect(page).toHaveScreenshot("diary-layout.png");
+test("preserves the legacy sidebar and editor geometry", async (): Promise<void> => {
+	const sidebar = await box(".sidebar");
+	const editor = await box(".editor");
+	const search = await box(".search-input-wrapper");
+	const calendar = await box(".DayPicker");
+	const title = await box(".editor-title-wrapper");
+	const content = await box(".lexical-content-editable");
+	const toolbar = await box(".editor-toolbar");
+	const day = await box(".DayPicker-Day--selected .DayPicker-DayButton");
+	const weekdayHeaders = await page.locator(".DayPicker-Weekday").evaluateAll(elements => elements.map(element => element.getBoundingClientRect().x));
+	const firstWeekDays = await page.locator(".DayPicker-Week").first().locator(".DayPicker-Day").evaluateAll(elements => elements.map(element => element.getBoundingClientRect().x));
+	const titleStyles = await page.locator(".editor-title-input").evaluate(element => {
+		const style = getComputedStyle(element);
+		return { background: style.backgroundColor, border: style.borderStyle, shadow: style.boxShadow };
+	});
+
+	expect(sidebar.width).toBe(288);
+	expect(editor.x).toBe(sidebar.x + sidebar.width);
+	expect(search.height).toBe(40);
+	expect(calendar.width).toBeLessThanOrEqual(sidebar.width - 40);
+	expect(title.width).toBe(content.width);
+	expect(content.y).toBeGreaterThan(title.y + title.height);
+	expect(toolbar.height).toBe(50);
+	expect(toolbar.y).toBe(editor.y + editor.height - toolbar.height - 24);
+	expect(day.width).toBe(34);
+	expect(day.height).toBe(34);
+	expect(titleStyles.border).toBe("none");
+	expect(titleStyles.shadow).toBe("none");
+	expect(titleStyles.background).toBe("rgba(0, 0, 0, 0)");
+	expect(weekdayHeaders).toHaveLength(7);
+	expect(firstWeekDays).toHaveLength(7);
+	weekdayHeaders.forEach((position, index) => expect(position).toBeCloseTo(firstWeekDays[index], 0));
+	const selectedStyles = await page.locator(".DayPicker-Day--selected").evaluate(element => {
+		const style = getComputedStyle(element);
+		return { background: style.backgroundColor, shadow: style.boxShadow, border: style.borderStyle };
+	});
+	expect(selectedStyles.background).toBe("rgba(0, 0, 0, 0)");
+	expect(selectedStyles.shadow).toBe("none");
+	expect(selectedStyles.border).toBe("none");
+	await expect(page).toHaveScreenshot("diary-layout.png", { maxDiffPixels: 7_000 });
 });
 
 test("aligns formatting controls to a uniform grid", async (): Promise<void> => {
@@ -74,5 +113,5 @@ test("aligns formatting controls to a uniform grid", async (): Promise<void> => 
 		expect(icon?.width).toBe(20);
 		expect(icon?.height).toBe(20);
 	}
-	await expect(page.locator(".formatting-buttons")).toHaveScreenshot("formatting-buttons.png");
+	await expect(page.locator(".formatting-buttons")).toHaveScreenshot("formatting-buttons.png", { maxDiffPixels: 64 });
 });

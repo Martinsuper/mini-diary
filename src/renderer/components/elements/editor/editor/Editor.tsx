@@ -1,34 +1,24 @@
-import "draft-js/dist/Draft.css";
-
-import {
-	ContentState,
-	convertFromRaw,
-	convertToRaw,
-	DraftEditorCommand,
-	DraftHandleValue,
-	EditorState,
-	getDefaultKeyBinding,
-	RichUtils,
-} from "draft-js";
-import createListPlugin from "draft-js-list-plugin";
-import PluginEditor from "draft-js-plugins-editor";
+import { $convertFromMarkdownString, $convertToMarkdownString, BOLD_STAR, BOLD_UNDERSCORE, ITALIC_STAR, ITALIC_UNDERSCORE, ORDERED_LIST, UNORDERED_LIST } from "@lexical/markdown";
+import { ListItemNode, ListNode } from "@lexical/list";
+import { LexicalComposer } from "@lexical/react/LexicalComposer";
+import { ContentEditable } from "@lexical/react/LexicalContentEditable";
+import { LexicalErrorBoundary } from "@lexical/react/LexicalErrorBoundary";
+import { HistoryPlugin } from "@lexical/react/LexicalHistoryPlugin";
+import { ListPlugin } from "@lexical/react/LexicalListPlugin";
+import { MarkdownShortcutPlugin } from "@lexical/react/LexicalMarkdownShortcutPlugin";
+import { OnChangePlugin } from "@lexical/react/LexicalOnChangePlugin";
+import { RichTextPlugin } from "@lexical/react/LexicalRichTextPlugin";
 import debounce from "lodash.debounce";
-import { draftToMarkdown, markdownToDraft } from "markdown-draft-js";
 import { Moment } from "moment-timezone";
-import React, { KeyboardEvent, PureComponent, ReactNode } from "react";
+import React, { FormEvent, ReactElement, useEffect, useMemo, useState } from "react";
 
 import { Entries, IndexDate } from "../../../../types";
 import { toIndexDate, toLocaleWeekday } from "../../../../utils/dateFormat";
 import { translations } from "../../../../utils/i18n";
 import EditorToolbar from "../editor-toolbar/editor-toolbar/EditorToolbar";
 
-type DraftEditorCommandExtended = DraftEditorCommand | "enter";
-
 const AUTOSAVE_INTERVAL = 500;
-
-// Draft.js plugins
-const listPlugin = createListPlugin();
-const plugins = [listPlugin];
+const MARKDOWN_TRANSFORMERS = [BOLD_STAR, BOLD_UNDERSCORE, ITALIC_STAR, ITALIC_UNDERSCORE, ORDERED_LIST, UNORDERED_LIST];
 
 export interface StateProps {
 	enableSpellcheck: boolean;
@@ -43,167 +33,104 @@ export interface DispatchProps {
 
 type Props = StateProps & DispatchProps;
 
-interface State {
-	dateSelected: Moment;
-	textEditorState: EditorState;
-	titleEditorState: EditorState;
+interface BodyEditorProps {
+	onChange: (text: string) => void;
+	spellCheck: boolean;
 }
 
-export default class Editor extends PureComponent<Props, State> {
-	static getDerivedStateFromProps(props: Props, state: State): State | null {
-		const { dateSelected: dateProps, entries } = props;
-		const { dateSelected: dateState } = state;
+function BodyEditor({ onChange, spellCheck }: BodyEditorProps): ReactElement {
+	return (
+		<div className="lexical-editor">
+			<RichTextPlugin
+				contentEditable={<ContentEditable aria-placeholder={translations["write-something"]} className="lexical-content-editable" placeholder={<div className="lexical-placeholder">{`${translations["write-something"]}…`}</div>} spellCheck={spellCheck} />}
+				placeholder={null}
+				ErrorBoundary={LexicalErrorBoundary}
+			/>
+			<HistoryPlugin />
+			<ListPlugin />
+			<MarkdownShortcutPlugin transformers={MARKDOWN_TRANSFORMERS} />
+			<OnChangePlugin
+				ignoreSelectionChange
+				onChange={(editorState): void => {
+					editorState.read((): void => onChange($convertToMarkdownString(MARKDOWN_TRANSFORMERS).trim()));
+				}}
+			/>
+		</div>
+	);
+}
 
-		if (dateProps === dateState) {
-			return null;
-		}
-		const entryState = Editor.getStateFromEntry(entries, dateProps);
-		return {
-			...entryState,
-			dateSelected: dateProps,
-		};
-	}
+export default function Editor(props: Props): ReactElement {
+	const { dateSelected, enableSpellcheck, entries, hideTitles, updateEntry } = props;
+	const indexDate = toIndexDate(dateSelected);
+	const entry = entries[indexDate];
+	const [title, setTitle] = useState(entry?.title ?? "");
+	const [text, setText] = useState(entry?.text ?? "");
 
-	static getStateFromEntry(
-		entries: Entries,
-		date: Moment,
-	): { textEditorState: EditorState; titleEditorState: EditorState } {
-		const indexDate = toIndexDate(date);
-		const entry = entries[indexDate];
-		let text = "";
-		let title = "";
-		if (entry) {
-			({ text, title } = entry);
-		}
+	const saveEntry = useMemo(() => debounce((nextTitle: string, nextText: string): void => {
+		updateEntry(indexDate, nextTitle.trim(), nextText.trim());
+	}, AUTOSAVE_INTERVAL), [indexDate, updateEntry]);
+	const initialConfig = useMemo(() => ({
+		editorState: (): void => {
+			$convertFromMarkdownString(entry?.text ?? "", MARKDOWN_TRANSFORMERS);
+		},
+		namespace: "mini-diary",
+		nodes: [ListNode, ListItemNode],
+		onError: (error: Error): void => {
+			throw error;
+		},
+	}), [indexDate]);
 
-		return {
-			textEditorState: EditorState.createWithContent(convertFromRaw(markdownToDraft(text))),
-			titleEditorState: EditorState.createWithContent(ContentState.createFromText(title)),
-		};
-	}
+	useEffect(() => (): void => saveEntry.flush(), [saveEntry]);
+	useEffect((): void => {
+		setTitle(entry?.title ?? "");
+		setText(entry?.text ?? "");
+	}, [indexDate]);
 
-	static titleKeyBindingFn(e: KeyboardEvent): DraftEditorCommandExtended | null {
-		if (e.key === "Enter") {
-			return "enter";
-		}
-		return getDefaultKeyBinding(e);
-	}
-
-	textEditor: PluginEditor;
-
-	constructor(props: Props) {
-		super(props);
-		const { dateSelected, entries } = props;
-
-		const entryState = Editor.getStateFromEntry(entries, dateSelected);
-		this.state = {
-			...entryState,
-			dateSelected,
-		};
-	}
-
-	componentWillUnmount = (): void => {
-		this.saveEntryDebounced.flush();
+	const onTitleInput = (event: FormEvent<HTMLDivElement>): void => {
+		const nextTitle = event.currentTarget.textContent || "";
+		setTitle(nextTitle);
+		saveEntry(nextTitle, text);
 	};
 
-	onTextChange = (textEditorState: EditorState): void => {
-		this.setState({
-			textEditorState,
-		});
-		this.saveEntryDebounced();
+	const onTextChange = (nextText: string): void => {
+		setText(nextText);
+		saveEntry(title, nextText);
 	};
 
-	onTitleChange = (titleEditorState: EditorState): void => {
-		this.setState({
-			titleEditorState,
-		});
-		this.saveEntryDebounced();
+	const onTitleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>): void => {
+		if (event.key !== "Enter") return;
+		event.preventDefault();
+		document.querySelector<HTMLDivElement>(".lexical-content-editable")?.focus();
 	};
 
-	handleTextKeyCommand = (
-		command: DraftEditorCommand,
-		editorState: EditorState,
-	): DraftHandleValue => {
-		let newState: EditorState;
-		if (command === "bold") {
-			newState = RichUtils.toggleInlineStyle(editorState, "BOLD");
-		} else if (command === "italic") {
-			newState = RichUtils.toggleInlineStyle(editorState, "ITALIC");
-		} else {
-			return "not-handled";
-		}
-		this.onTextChange(newState);
-		return "handled";
-	};
-
-	handleTitleKeyCommand = (command: DraftEditorCommandExtended): DraftHandleValue => {
-		// Move focus to text editor when enter key is pressed in title editor
-		if (command === "enter") {
-			this.textEditor.focus();
-			return "handled";
-		}
-		return "not-handled";
-	};
-
-	saveEntry = (): void => {
-		const { updateEntry } = this.props;
-		const { dateSelected, textEditorState, titleEditorState } = this.state;
-
-		const indexDate = toIndexDate(dateSelected);
-		const title = titleEditorState.getCurrentContent().getPlainText();
-		const text = draftToMarkdown(convertToRaw(textEditorState.getCurrentContent()));
-		updateEntry(indexDate, title.trim(), text.trim());
-	};
-
-	// eslint-disable-next-line react/sort-comp
-	saveEntryDebounced = debounce(this.saveEntry.bind(this), AUTOSAVE_INTERVAL);
-
-	render = (): ReactNode => {
-		const { dateSelected, textEditorState, titleEditorState } = this.state;
-		const { enableSpellcheck, hideTitles } = this.props;
-
-		// Detect active inline/block styles
-		const blockType = RichUtils.getCurrentBlockType(textEditorState);
-		const isOl = blockType === "ordered-list-item";
-		const isUl = blockType === "unordered-list-item";
-
-		const weekdayDate = toLocaleWeekday(dateSelected);
-		return (
+	return (
+		<LexicalComposer initialConfig={initialConfig} key={indexDate}>
 			<form className="editor">
 				<div className="editor-scrollable">
-					<p className="text-faded">{weekdayDate}</p>
+					<p className="text-faded">{toLocaleWeekday(dateSelected)}</p>
 					{!hideTitles && (
 						<div className="editor-title-wrapper">
-							<PluginEditor
-								editorState={titleEditorState}
-								handleKeyCommand={this.handleTitleKeyCommand}
-								keyBindingFn={Editor.titleKeyBindingFn}
-								onBlur={this.saveEntry}
-								onChange={this.onTitleChange}
-								ariaLabel={translations["add-a-title"]}
-									placeholder={translations["add-a-title"]}
+							<div
+								aria-label={translations["add-a-title"]}
+								className={`editor-title-input ${title ? "" : "is-empty"}`}
+								contentEditable
+								onBlur={(): void => saveEntry.flush()}
+								onInput={onTitleInput}
+								onKeyDown={onTitleKeyDown}
+								role="textbox"
 								spellCheck={enableSpellcheck}
-							/>
+								suppressContentEditableWarning
+							>
+								{title || translations["add-a-title"]}
+							</div>
 						</div>
 					)}
 					<div className="editor-text-wrapper">
-						<PluginEditor
-							editorState={textEditorState}
-							handleKeyCommand={this.handleTextKeyCommand}
-							onBlur={this.saveEntry}
-							onChange={this.onTextChange}
-							ref={(textEditor: PluginEditor): void => {
-								this.textEditor = textEditor;
-							}}
-							ariaLabel={translations["write-something"]}
-								placeholder={isOl || isUl ? "" : `${translations["write-something"]}…`}
-							plugins={plugins}
-							spellCheck={enableSpellcheck}
-						/>
+						<BodyEditor onChange={onTextChange} spellCheck={enableSpellcheck} />
 					</div>
 				</div>
-				<EditorToolbar onTextChange={this.onTextChange} textEditorState={textEditorState} />
+				<EditorToolbar />
 			</form>
-		);
-	};
+		</LexicalComposer>
+	);
 }

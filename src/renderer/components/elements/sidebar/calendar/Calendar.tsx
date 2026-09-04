@@ -1,11 +1,9 @@
 import { Moment } from "moment-timezone";
 import React, { PureComponent, ReactNode } from "react";
-import DayPicker from "react-day-picker";
-import MomentLocaleUtils from "react-day-picker/moment";
+import { DayPicker } from "react-day-picker";
 
 import { Entries, Weekday } from "../../../../types";
-import { createDate, parseDate, toIndexDate } from "../../../../utils/dateFormat";
-import { lang } from "../../../../utils/i18n";
+import { createDate, parseDate } from "../../../../utils/dateFormat";
 import CalendarNavContainer from "../calendar-nav/CalendarNavContainer";
 
 export interface StateProps {
@@ -21,51 +19,60 @@ export interface DispatchProps {
 
 type Props = StateProps & DispatchProps;
 
+const classNames = {
+	button_next: "DayPicker-NavButton DayPicker-NavButton--next",
+	button_previous: "DayPicker-NavButton DayPicker-NavButton--prev",
+	caption: "DayPicker-Caption",
+	cell: "DayPicker-Day",
+	day: "DayPicker-Day",
+	day_button: "DayPicker-DayButton",
+	disabled: "DayPicker-Day--disabled",
+	head_cell: "DayPicker-Weekday",
+	head_row: "DayPicker-WeekdaysRow",
+	hidden: "DayPicker-Day--hidden",
+	month: "DayPicker-Month",
+	month_caption: "DayPicker-Caption",
+	month_grid: "DayPicker-Body",
+	months: "DayPicker-Months",
+	outside: "DayPicker-Day--outside",
+	root: "DayPicker",
+	selected: "DayPicker-Day--selected",
+	today: "DayPicker-Day--today",
+	week: "DayPicker-Week",
+	weeks: "DayPicker-Body",
+	weekday: "DayPicker-Weekday",
+	weekdays: "DayPicker-WeekdaysRow",
+	weekdays_row: "DayPicker-WeekdaysRow",
+};
+
 export default class Calendar extends PureComponent<Props, {}> {
-	constructor(props: Props) {
-		super(props);
-
-		// Function bindings
-		this.onDateSelection = this.onDateSelection.bind(this);
-	}
-
-	onDateSelection(date: Date): void {
+	onDateSelection = (date: Date | undefined): void => {
+		if (!date) return;
 		const { allowFutureEntries, setDateSelected } = this.props;
 		const parsedDate = parseDate(date);
-		const today = createDate();
-
-		if (allowFutureEntries || parseDate(date).isSameOrBefore(today, "day")) {
-			setDateSelected(parsedDate);
-		}
-	}
+		if (allowFutureEntries || parsedDate.isSameOrBefore(createDate(), "day")) setDateSelected(parsedDate);
+	};
 
 	render(): ReactNode {
 		const { allowFutureEntries, dateSelected, entries, firstDayOfWeek } = this.props;
-
-		const today = createDate();
-		const daysWithEntries = Object.keys(entries);
-
-		const hasEntry = (date: Date): boolean => {
-			const indexDate = toIndexDate(parseDate(date));
-			return daysWithEntries.includes(indexDate);
-		};
-
-		const dateSelectedObj = dateSelected.toDate();
-		const todayObj = today.toDate();
-
+		const daysWithEntries = Object.keys(entries).map(indexDate => parseDate(indexDate).toDate());
 		return (
-			<DayPicker
-				month={dateSelectedObj}
-				selectedDays={dateSelectedObj}
-				disabledDays={allowFutureEntries ? null : { after: todayObj }}
-				captionElement={(): null => null}
-				modifiers={{ hasEntry }}
-				firstDayOfWeek={firstDayOfWeek ?? undefined}
-				locale={lang}
-				localeUtils={MomentLocaleUtils}
-				navbarElement={<CalendarNavContainer />}
-				onDayClick={this.onDateSelection}
-			/>
+			<>
+				<CalendarNavContainer />
+				<DayPicker
+					classNames={classNames}
+					components={{ MonthCaption: () => <></> }}
+					disabled={allowFutureEntries ? undefined : { after: createDate().toDate() }}
+					hideNavigation
+					mode="single"
+					modifiers={{ hasEntry: daysWithEntries }}
+					modifiersClassNames={{ hasEntry: "DayPicker-Day--hasEntry" }}
+					month={dateSelected.toDate()}
+					onSelect={this.onDateSelection}
+					selected={dateSelected.toDate()}
+					weekStartsOn={firstDayOfWeek ?? undefined}
+				/>
+			</>
 		);
 	}
 }

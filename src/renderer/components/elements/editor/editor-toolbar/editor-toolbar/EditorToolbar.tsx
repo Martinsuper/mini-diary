@@ -1,28 +1,16 @@
-import { EditorState } from "draft-js";
 import React, { ReactElement } from "react";
 
 import FormattingButtons from "../formatting-buttons/FormattingButtons";
 import WordCountWrapper from "../word-count/WordCountWrapper";
 
-export interface CustomProps {
-	onTextChange: (textEditorState: EditorState) => void;
-	textEditorState: EditorState;
-}
-
-type Props = CustomProps;
-
-export default function EditorToolbar(props: Props): ReactElement {
-	const { onTextChange, textEditorState } = props;
-
+export default function EditorToolbar(): ReactElement {
 	return (
 		<div
 			className="editor-toolbar"
-			onMouseDown={(e): void => {
-				e.preventDefault(); // Keep focus on editor when a button is clicked
-			}}
+			onMouseDown={(event): void => event.preventDefault()}
 			role="none"
 		>
-			<FormattingButtons onTextChange={onTextChange} textEditorState={textEditorState} />
+			<FormattingButtons />
 			<WordCountWrapper />
 		</div>
 	);

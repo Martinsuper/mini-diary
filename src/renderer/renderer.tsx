@@ -1,7 +1,7 @@
 import "./assets/styles/styles.scss";
 
 import React from "react";
-import ReactDOM from "react-dom";
+import { createRoot } from "react-dom/client";
 import { Provider } from "react-redux";
 
 import { initLogger } from "../shared/logger";
@@ -24,11 +24,10 @@ async function start(): Promise<void> {
 	root.id = "root";
 	document.body.appendChild(root);
 
-	ReactDOM.render(
+	createRoot(root).render(
 		<Provider store={store}>
 			<AppContainer />
 		</Provider>,
-		root,
 	);
 }
 
