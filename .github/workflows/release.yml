@@ -5,6 +5,8 @@ on: push
 jobs:
   release:
     runs-on: ${{ matrix.os }}
+    env:
+      HAS_MAC_CERTS: ${{ secrets.mac_certs != '' }}
 
     # Platforms to build on/for
     strategy:
@@ -29,14 +31,14 @@ jobs:
           snapcraft_token: ${{ secrets.snapcraft_token }}
 
       - name: Prepare for app notarization (macOS)
-        if: startsWith(matrix.os, 'macos') && secrets.mac_certs != ''
+        if: startsWith(matrix.os, 'macos') && env.HAS_MAC_CERTS == 'true'
         # Import Apple API key for app notarization on macOS
         run: |
           mkdir -p ~/private_keys/
           echo '${{ secrets.api_key }}' > ~/private_keys/AuthKey_${{ secrets.api_key_id }}.p8
 
       - name: Build/release signed Electron app
-        if: ${{ !startsWith(matrix.os, 'macos') || secrets.mac_certs != '' }}
+        if: ${{ !startsWith(matrix.os, 'macos') || env.HAS_MAC_CERTS == 'true' }}
         uses: samuelmeuli/action-electron-builder@v1
         with:
           # GitHub token, automatically provided to the action
@@ -56,7 +58,7 @@ jobs:
           API_KEY_ISSUER_ID: ${{ secrets.api_key_issuer_id }}
 
       - name: Build/release unsigned macOS app
-        if: startsWith(matrix.os, 'macos') && secrets.mac_certs == ''
+        if: startsWith(matrix.os, 'macos') && env.HAS_MAC_CERTS != 'true'
         env:
           GH_TOKEN: ${{ secrets.github_token }}
           CSC_IDENTITY_AUTO_DISCOVERY: false
