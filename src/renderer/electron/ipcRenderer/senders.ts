@@ -10,7 +10,8 @@ export function getTranslation(
 	substitutions: Record<string, string>,
 ): string {
 	return Object.entries(substitutions).reduce(
-		(translation, [key, replacement]) => translation.replace(new RegExp(`{${key}}`, "g"), replacement),
+		(translation, [key, replacement]) =>
+			translation.replace(new RegExp(`{${key}}`, "g"), replacement),
 		getBootstrap().translations[i18nKey],
 	);
 }

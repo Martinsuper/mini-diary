@@ -27,6 +27,9 @@ export type ThunkActionT = ThunkAction<void, RootState, undefined, RootAction>;
 export type ThunkDispatchT = ThunkDispatch<RootState, undefined, RootAction>;
 
 const middleware = process.env.NODE_ENV !== "production" ? [thunk, createLogger()] : [thunk];
-const store = createStore(rootReducer as any, applyMiddleware(...(middleware as any)) as any) as Store<RootState, RootAction> & { dispatch: ThunkDispatchT };
+const store = createStore(
+	rootReducer as any,
+	applyMiddleware(...(middleware as any)) as any,
+) as Store<RootState, RootAction> & { dispatch: ThunkDispatchT };
 
 export default store;

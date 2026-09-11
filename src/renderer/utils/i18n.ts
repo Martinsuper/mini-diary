@@ -17,7 +17,8 @@ export function translate(
 	substitutions: Record<string, string> = {},
 ): string {
 	return Object.entries(substitutions).reduce(
-		(translation, [key, replacement]) => translation.replace(new RegExp(`{${key}}`, "g"), replacement),
+		(translation, [key, replacement]) =>
+			translation.replace(new RegExp(`{${key}}`, "g"), replacement),
 		translations[i18nKey],
 	);
 }

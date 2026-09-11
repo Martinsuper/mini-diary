@@ -68,42 +68,50 @@ function setFileExists(fileExists: boolean): SetFileExistsAction {
 	return { type: SET_FILE_EXISTS, payload: { fileExists } };
 }
 
-export const testFileExists = (): ThunkActionT => async (dispatch): Promise<void> => {
-	dispatch(setFileExists(await window.miniDiary.diary.fileExists()));
-};
+export const testFileExists =
+	(): ThunkActionT =>
+	async (dispatch): Promise<void> => {
+		dispatch(setFileExists(await window.miniDiary.diary.fileExists()));
+	};
 
-export const lock = (): ThunkActionT => async (dispatch): Promise<void> => {
-	flushIndexUpdates();
-	await window.miniDiary.diary.lock();
-	cancelIndexUpdates();
-	dispatch(clearFileState());
-	disableMenuItems();
-};
+export const lock =
+	(): ThunkActionT =>
+	async (dispatch): Promise<void> => {
+		flushIndexUpdates();
+		await window.miniDiary.diary.lock();
+		cancelIndexUpdates();
+		dispatch(clearFileState());
+		disableMenuItems();
+	};
 
-export const decryptFile = (password: string): ThunkActionT => async (dispatch): Promise<void> => {
-	dispatch(setDecryptInProgress());
-	try {
-		const { entries } = await window.miniDiary.diary.read(password);
-		dispatch(setDecryptSuccess(entries));
-		await createIndex(entries);
-		enableMenuItems();
-	} catch (error) {
-		console.error("Error decrypting diary file: ", error);
-		dispatch(setDecryptError(error.message));
-	}
-};
+export const decryptFile =
+	(password: string): ThunkActionT =>
+	async (dispatch): Promise<void> => {
+		dispatch(setDecryptInProgress());
+		try {
+			const { entries } = await window.miniDiary.diary.read(password);
+			dispatch(setDecryptSuccess(entries));
+			await createIndex(entries);
+			enableMenuItems();
+		} catch (error) {
+			console.error("Error decrypting diary file: ", error);
+			dispatch(setDecryptError(error.message));
+		}
+	};
 
-export const createEncryptedFile = (password: string): ThunkActionT => async (dispatch): Promise<void> => {
-	dispatch(setEncryptInProgress());
-	try {
-		const { entries } = await window.miniDiary.diary.create(password);
-		dispatch(setEncryptSuccess(entries));
-		enableMenuItems();
-	} catch (error) {
-		console.error("Error creating encrypted diary file: ", error);
-		dispatch(setEncryptError(error.message));
-	}
-};
+export const createEncryptedFile =
+	(password: string): ThunkActionT =>
+	async (dispatch): Promise<void> => {
+		dispatch(setEncryptInProgress());
+		try {
+			const { entries } = await window.miniDiary.diary.create(password);
+			dispatch(setEncryptSuccess(entries));
+			enableMenuItems();
+		} catch (error) {
+			console.error("Error creating encrypted diary file: ", error);
+			dispatch(setEncryptError(error.message));
+		}
+	};
 
 function saveEntry(entryDate: IndexDate, entry: Entries[IndexDate] | null): ThunkActionT {
 	return async (dispatch): Promise<void> => {
@@ -129,55 +137,63 @@ function replaceEntries(entries: Entries): ThunkActionT {
 	};
 }
 
-export const resetDiary = (): ThunkActionT => async (dispatch): Promise<void> => {
-	await window.miniDiary.diary.reset();
-	dispatch(clearFileState());
-	disableMenuItems();
-};
+export const resetDiary =
+	(): ThunkActionT =>
+	async (dispatch): Promise<void> => {
+		await window.miniDiary.diary.reset();
+		dispatch(clearFileState());
+		disableMenuItems();
+	};
 
-export const updatePassword = (newPassword: string): ThunkActionT => async (dispatch, getState): Promise<void> => {
-	dispatch(setEncryptInProgress());
-	try {
-		const { entries } = await window.miniDiary.diary.updatePassword(newPassword, getState().file.entries);
-		dispatch(setEncryptSuccess(entries));
-	} catch (error) {
-		dispatch(setEncryptError(error.message));
-	}
-};
-
-export const updateEntry = (entryDate: IndexDate, title: string, text: string): ThunkActionT => (
-	dispatch,
-	getState,
-): void => {
-	const { entries, isUnlocked } = getState().file;
-	if (!isUnlocked) return;
-
-	const updated = { ...entries };
-	if (!title && !text) {
-		if (updated[entryDate]) {
-			cancelIndexUpdate(entryDate);
-			void removeIndexDoc(entryDate);
-			delete updated[entryDate];
+export const updatePassword =
+	(newPassword: string): ThunkActionT =>
+	async (dispatch, getState): Promise<void> => {
+		dispatch(setEncryptInProgress());
+		try {
+			const { entries } = await window.miniDiary.diary.updatePassword(
+				newPassword,
+				getState().file.entries,
+			);
+			dispatch(setEncryptSuccess(entries));
+		} catch (error) {
+			dispatch(setEncryptError(error.message));
 		}
-	} else if (!updated[entryDate]) {
-		const entry = { dateUpdated: createDate().toString(), title, text };
-		updated[entryDate] = entry;
-		void addIndexDoc(entryDate, entry);
-	} else if (title !== updated[entryDate].title || text !== updated[entryDate].text) {
-		const oldEntry = updated[entryDate];
-		const entry = { dateUpdated: createDate().toString(), title, text };
-		updated[entryDate] = entry;
-		scheduleIndexUpdate(entryDate, oldEntry, entry);
-	} else {
-		return;
-	}
-	dispatch(setEntries(updated));
-	dispatch(saveEntry(entryDate, updated[entryDate] || null));
-};
+	};
 
-export const mergeUpdateFile = (newEntries: Entries): ThunkActionT => async (dispatch, getState): Promise<void> => {
-	const entries = { ...getState().file.entries, ...newEntries };
-	dispatch(setEntries(entries));
-	await createIndex(entries);
-	dispatch(replaceEntries(entries));
-};
+export const updateEntry =
+	(entryDate: IndexDate, title: string, text: string): ThunkActionT =>
+	(dispatch, getState): void => {
+		const { entries, isUnlocked } = getState().file;
+		if (!isUnlocked) return;
+
+		const updated = { ...entries };
+		if (!title && !text) {
+			if (updated[entryDate]) {
+				cancelIndexUpdate(entryDate);
+				void removeIndexDoc(entryDate);
+				delete updated[entryDate];
+			}
+		} else if (!updated[entryDate]) {
+			const entry = { dateUpdated: createDate().toString(), title, text };
+			updated[entryDate] = entry;
+			void addIndexDoc(entryDate, entry);
+		} else if (title !== updated[entryDate].title || text !== updated[entryDate].text) {
+			const oldEntry = updated[entryDate];
+			const entry = { dateUpdated: createDate().toString(), title, text };
+			updated[entryDate] = entry;
+			scheduleIndexUpdate(entryDate, oldEntry, entry);
+		} else {
+			return;
+		}
+		dispatch(setEntries(updated));
+		dispatch(saveEntry(entryDate, updated[entryDate] || null));
+	};
+
+export const mergeUpdateFile =
+	(newEntries: Entries): ThunkActionT =>
+	async (dispatch, getState): Promise<void> => {
+		const entries = { ...getState().file.entries, ...newEntries };
+		dispatch(setEntries(entries));
+		await createIndex(entries);
+		dispatch(replaceEntries(entries));
+	};

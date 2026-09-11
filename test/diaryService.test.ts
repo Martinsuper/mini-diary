@@ -24,8 +24,14 @@ afterEach(async (): Promise<void> => {
 test("persists the newest queued entry update", async (): Promise<void> => {
 	const diary = new DiaryService();
 	await diary.create(password);
-	diary.save({ entry: { dateUpdated: "first", text: "first", title: "First" }, indexDate: "2026/09/03" });
-	diary.save({ entry: { dateUpdated: "second", text: "second", title: "Second" }, indexDate: "2026/09/03" });
+	diary.save({
+		entry: { dateUpdated: "first", text: "first", title: "First" },
+		indexDate: "2026/09/03",
+	});
+	diary.save({
+		entry: { dateUpdated: "second", text: "second", title: "Second" },
+		indexDate: "2026/09/03",
+	});
 	await diary.flush();
 
 	const reopened = new DiaryService();
@@ -37,7 +43,10 @@ test("persists the newest queued entry update", async (): Promise<void> => {
 test("rejects an incorrect password without altering the encrypted file", async (): Promise<void> => {
 	const diary = new DiaryService();
 	await diary.create(password);
-	diary.save({ entry: { dateUpdated: "now", text: "secret", title: "Private" }, indexDate: "2026/09/03" });
+	diary.save({
+		entry: { dateUpdated: "now", text: "secret", title: "Private" },
+		indexDate: "2026/09/03",
+	});
 	await diary.flush();
 	const stored = await readFile(path.join(directory, "mini-diary.txt"), "utf8");
 
@@ -49,7 +58,10 @@ test("rejects an incorrect password without altering the encrypted file", async 
 test("flushes pending changes before locking", async (): Promise<void> => {
 	const diary = new DiaryService();
 	await diary.create(password);
-	diary.save({ entry: { dateUpdated: "now", text: "saved", title: "Saved" }, indexDate: "2026/09/03" });
+	diary.save({
+		entry: { dateUpdated: "now", text: "saved", title: "Saved" },
+		indexDate: "2026/09/03",
+	});
 	await diary.lock();
 	await expect(diary.flush()).resolves.toBeUndefined();
 

@@ -78,7 +78,12 @@ export interface MiniDiaryApi {
 		toggleWindowSize: () => Promise<void>;
 	};
 	dialogs: {
-		confirmReset: (title: string, message: string, confirm: string, cancel: string) => Promise<boolean>;
+		confirmReset: (
+			title: string,
+			message: string,
+			confirm: string,
+			cancel: string,
+		) => Promise<boolean>;
 		exportFile: (defaultName: string, buttonLabel: string, content: string) => Promise<boolean>;
 		exportPdf: (defaultName: string, buttonLabel: string, markdown: string) => Promise<boolean>;
 		importFile: (extension: "json" | "txt") => Promise<string | null>;
@@ -103,6 +108,9 @@ export interface MiniDiaryApi {
 		onThemeChange: (listener: (theme: "light" | "dark") => void) => () => void;
 	};
 	preferences: {
-		set: (key: keyof PreferenceValues, value: PreferenceValues[keyof PreferenceValues]) => Promise<void>;
+		set: (
+			key: keyof PreferenceValues,
+			value: PreferenceValues[keyof PreferenceValues],
+		) => Promise<void>;
 	};
 }

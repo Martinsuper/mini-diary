@@ -35,7 +35,8 @@ button,
 input,
 select,
 textarea {
-	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", sans-serif;
+	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB",
+		sans-serif;
 }
 
 .app {
@@ -71,16 +72,16 @@ textarea {
 
 .app-brand {
 	display: flex;
-	align-items: center;
 	gap: 10px;
-	font-size: 16px;
+	align-items: center;
 	font-weight: 600;
+	font-size: 16px;
 
 	small {
 		padding-left: 10px;
 		color: var(--ui-muted);
-		font-size: 13px;
 		font-weight: 400;
+		font-size: 13px;
 		border-left: 1px solid var(--ui-border);
 	}
 }
@@ -140,8 +141,8 @@ textarea {
 .theme-menu-title {
 	padding: 4px 8px 8px;
 	color: var(--ui-text);
-	font-size: 13px;
 	font-weight: 600;
+	font-size: 13px;
 }
 
 .theme-menu-option {
@@ -212,8 +213,8 @@ textarea {
 	width: 20px;
 	height: 20px;
 	color: var(--ui-muted);
-	pointer-events: none;
 	transform: translateY(-50%);
+	pointer-events: none;
 }
 
 .search-input {
@@ -235,8 +236,8 @@ textarea {
 
 	.month-name {
 		color: var(--ui-text);
-		font-size: 16px;
 		font-weight: 500;
+		font-size: 16px;
 	}
 }
 
@@ -286,8 +287,8 @@ textarea {
 .DayPicker-Weekday {
 	height: 27px;
 	color: var(--ui-muted) !important;
-	font-size: 12px;
 	font-weight: 400;
+	font-size: 12px;
 }
 
 .DayPicker-Day {
@@ -331,10 +332,10 @@ textarea {
 
 .sidebar-save-state {
 	display: flex;
-	align-items: center;
 	gap: 7px;
-	padding-top: 16px;
+	align-items: center;
 	margin-top: auto;
+	padding-top: 16px;
 	color: var(--ui-muted);
 	font-size: 12px;
 	border-top: 1px solid var(--ui-border);
@@ -406,21 +407,21 @@ textarea {
 .editor-title-wrapper {
 	margin-bottom: 28px;
 	color: var(--ui-text);
-	font-size: clamp(28px, 3vw, 34px);
 	font-weight: 600;
+	font-size: clamp(28px, 3vw, 34px);
 	line-height: 1.35;
 }
 
 .editor-title-wrapper .editor-title-input {
-	box-sizing: border-box;
 	display: block;
+	box-sizing: border-box;
 	height: 46px;
 	padding: 0;
+	line-height: inherit;
 	background: transparent !important;
 	border: 0 !important;
 	border-color: transparent !important;
 	box-shadow: none !important;
-	line-height: inherit;
 }
 
 .editor-text-wrapper {
@@ -444,9 +445,9 @@ textarea {
 }
 
 .editor-toolbar {
+	box-sizing: border-box;
 	height: 50px;
 	min-height: 0;
-	box-sizing: border-box;
 	padding: 0 12px !important;
 	background: var(--ui-surface) !important;
 	border: 1px solid var(--ui-border);
@@ -456,9 +457,9 @@ textarea {
 
 .formatting-buttons {
 	display: flex;
+	gap: 4px;
 	align-items: center;
 	height: 40px;
-	gap: 4px;
 }
 
 .editor-toolbar .formatting-buttons .button {
@@ -517,8 +518,8 @@ textarea {
 
 	h1 {
 		margin-bottom: 24px !important;
-		font-size: 20px;
 		font-weight: 600;
+		font-size: 20px;
 	}
 }
 
@@ -542,8 +543,8 @@ fieldset {
 
 legend {
 	color: var(--ui-text);
-	font-size: 14px;
 	font-weight: 600;
+	font-size: 14px;
 }
 
 .fieldset-content,
@@ -567,7 +568,7 @@ select {
 }
 
 .button.button-main {
-	color: #fff;
+	color: #ffffff;
 	background: var(--ui-accent);
 	border-radius: 4px;
 	box-shadow: none;

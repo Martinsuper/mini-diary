@@ -50,12 +50,13 @@ export default class Calendar extends PureComponent<Props, {}> {
 		if (!date) return;
 		const { allowFutureEntries, setDateSelected } = this.props;
 		const parsedDate = parseDate(date);
-		if (allowFutureEntries || parsedDate.isSameOrBefore(createDate(), "day")) setDateSelected(parsedDate);
+		if (allowFutureEntries || parsedDate.isSameOrBefore(createDate(), "day"))
+			setDateSelected(parsedDate);
 	};
 
 	render(): ReactNode {
 		const { allowFutureEntries, dateSelected, entries, firstDayOfWeek } = this.props;
-		const daysWithEntries = Object.keys(entries).map(indexDate => parseDate(indexDate).toDate());
+		const daysWithEntries = Object.keys(entries).map((indexDate) => parseDate(indexDate).toDate());
 		return (
 			<>
 				<CalendarNavContainer />

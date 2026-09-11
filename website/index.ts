@@ -54,7 +54,7 @@ function getCurrentPlatform(): Platform {
 function updateVariableDownloadLinks(): void {
 	const platform = getCurrentPlatform();
 	const links = document.getElementsByClassName("download");
-	Array.from(links).forEach(a => {
+	Array.from(links).forEach((a) => {
 		a.classList.replace("download", `download-${platform}`);
 	});
 }
@@ -66,7 +66,7 @@ async function insertDownloadUrls(): Promise<void> {
 
 	// Build map of file extensions and asset URLs
 	const assetMap: Partial<Record<Extension, string>> = {};
-	assets.forEach(asset => {
+	assets.forEach((asset) => {
 		const extension = asset.browser_download_url.split(".").slice(-1)[0] as Extension;
 		assetMap[extension] = asset.browser_download_url;
 	});

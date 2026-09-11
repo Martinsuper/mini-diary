@@ -9,7 +9,12 @@ import { initializeBootstrap } from "./bootstrap";
 
 async function start(): Promise<void> {
 	initializeBootstrap(await window.miniDiary.app.bootstrap());
-	const [{ default: AppContainer }, { default: initIpcListeners }, { default: store }, { initI18n }] = await Promise.all([
+	const [
+		{ default: AppContainer },
+		{ default: initIpcListeners },
+		{ default: store },
+		{ initI18n },
+	] = await Promise.all([
 		import("./components/AppContainer"),
 		import("./electron/ipcRenderer/listeners"),
 		import("./store/store"),

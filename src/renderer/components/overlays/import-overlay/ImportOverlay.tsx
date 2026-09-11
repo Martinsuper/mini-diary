@@ -31,7 +31,9 @@ const fields = {
 	txtDayOne: {
 		title: translate("import-from-format", { format: "TXT (Day One)" }),
 		extension: "txt" as const,
-		instructions: <p>{translate("import-instructions-day-one", { appName, format: "Plain Text" })}</p>,
+		instructions: (
+			<p>{translate("import-instructions-day-one", { appName, format: "Plain Text" })}</p>
+		),
 	},
 };
 
@@ -72,7 +74,13 @@ export default class ImportOverlay extends PureComponent<Props, {}> {
 			<OverlayContainer className="import-overlay">
 				<h1>{fields[importFormat].title}</h1>
 				{fields[importFormat].instructions}
-				<button type="button" className="button button-main" onClick={(): void => { void this.selectAndImportFile(); }}>
+				<button
+					type="button"
+					className="button button-main"
+					onClick={(): void => {
+						void this.selectAndImportFile();
+					}}
+				>
 					{translations["start-import"]}
 				</button>
 			</OverlayContainer>

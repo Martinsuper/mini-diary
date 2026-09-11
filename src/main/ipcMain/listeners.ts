@@ -63,53 +63,98 @@ export default function initIpcListeners(diary: DiaryService): void {
 	ipcMain.handle(IPC.diary.reset, () => diary.reset());
 	ipcMain.handle(IPC.diary.save, (_, update) => diary.save(update));
 	ipcMain.handle(IPC.diary.replaceEntries, (_, entries) => diary.replaceEntries(entries));
-	ipcMain.handle(IPC.diary.updatePassword, (_, password: string, entries) => diary.updatePassword(password, entries));
+	ipcMain.handle(IPC.diary.updatePassword, (_, password: string, entries) =>
+		diary.updatePassword(password, entries),
+	);
 
-	ipcMain.handle(IPC.dialogs.confirmReset, async (_, title: string, message: string, confirm: string, cancel: string): Promise<boolean> => {
-		const result = await dialog.showMessageBox(parentWindow(), { buttons: [confirm, cancel], defaultId: 1, message, title, type: "warning" });
-		return result.response === 0;
-	});
-	ipcMain.handle(IPC.dialogs.selectDirectory, async (_, buttonLabel: string): Promise<string | null> => {
-		const result = await dialog.showOpenDialog(parentWindow(), { buttonLabel, properties: ["openDirectory"] });
-		return result.canceled ? null : result.filePaths[0];
-	});
-	ipcMain.handle(IPC.dialogs.importFile, async (_, extension: "json" | "txt"): Promise<string | null> => {
-		const result = await dialog.showOpenDialog(parentWindow(), {
-			filters: [{ extensions: [extension], name: extension.toUpperCase() }],
-			properties: ["openFile"],
-		});
-		return result.canceled ? null : fs.readFile(result.filePaths[0], "utf8");
-	});
-	ipcMain.handle(IPC.dialogs.exportFile, async (_, defaultName: string, buttonLabel: string, content: string): Promise<boolean> => {
-		const filePath = await selectExportPath(defaultName, buttonLabel);
-		if (!filePath) return false;
-		await fs.writeFile(filePath, content, "utf8");
-		return true;
-	});
-	ipcMain.handle(IPC.dialogs.exportPdf, async (_, defaultName: string, buttonLabel: string, markdown: string): Promise<boolean> => {
-		const filePath = await selectExportPath(defaultName, buttonLabel);
-		if (!filePath) return false;
-		const pdfWindow = new BrowserWindow({ show: false, webPreferences: { sandbox: true } });
-		try {
-			const html = `<!doctype html><meta charset="utf-8"><style>body{font:14px sans-serif;white-space:pre-wrap}</style><body>${markdown.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")}</body>`;
-			await pdfWindow.loadURL(`data:text/html;charset=utf-8,${encodeURIComponent(html)}`);
-			await fs.writeFile(filePath, await pdfWindow.webContents.printToPDF({ pageSize: "A4" }));
+	ipcMain.handle(
+		IPC.dialogs.confirmReset,
+		async (
+			_,
+			title: string,
+			message: string,
+			confirm: string,
+			cancel: string,
+		): Promise<boolean> => {
+			const result = await dialog.showMessageBox(parentWindow(), {
+				buttons: [confirm, cancel],
+				defaultId: 1,
+				message,
+				title,
+				type: "warning",
+			});
+			return result.response === 0;
+		},
+	);
+	ipcMain.handle(
+		IPC.dialogs.selectDirectory,
+		async (_, buttonLabel: string): Promise<string | null> => {
+			const result = await dialog.showOpenDialog(parentWindow(), {
+				buttonLabel,
+				properties: ["openDirectory"],
+			});
+			return result.canceled ? null : result.filePaths[0];
+		},
+	);
+	ipcMain.handle(
+		IPC.dialogs.importFile,
+		async (_, extension: "json" | "txt"): Promise<string | null> => {
+			const result = await dialog.showOpenDialog(parentWindow(), {
+				filters: [{ extensions: [extension], name: extension.toUpperCase() }],
+				properties: ["openFile"],
+			});
+			return result.canceled ? null : fs.readFile(result.filePaths[0], "utf8");
+		},
+	);
+	ipcMain.handle(
+		IPC.dialogs.exportFile,
+		async (_, defaultName: string, buttonLabel: string, content: string): Promise<boolean> => {
+			const filePath = await selectExportPath(defaultName, buttonLabel);
+			if (!filePath) return false;
+			await fs.writeFile(filePath, content, "utf8");
 			return true;
-		} finally {
-			pdfWindow.destroy();
-		}
-	});
+		},
+	);
+	ipcMain.handle(
+		IPC.dialogs.exportPdf,
+		async (_, defaultName: string, buttonLabel: string, markdown: string): Promise<boolean> => {
+			const filePath = await selectExportPath(defaultName, buttonLabel);
+			if (!filePath) return false;
+			const pdfWindow = new BrowserWindow({ show: false, webPreferences: { sandbox: true } });
+			try {
+				const html = `<!doctype html><meta charset="utf-8"><style>body{font:14px sans-serif;white-space:pre-wrap}</style><body>${markdown
+					.replace(/&/g, "&amp;")
+					.replace(/</g, "&lt;")
+					.replace(/>/g, "&gt;")}</body>`;
+				await pdfWindow.loadURL(`data:text/html;charset=utf-8,${encodeURIComponent(html)}`);
+				await fs.writeFile(filePath, await pdfWindow.webContents.printToPDF({ pageSize: "A4" }));
+				return true;
+			} finally {
+				pdfWindow.destroy();
+			}
+		},
+	);
 
 	ipcMain.handle(IPC.diary.getPath, (): string => diary.getDirectory());
 	ipcMain.handle(IPC.diary.move, async (_, directory: string): Promise<string> => {
 		await diary.moveTo(directory);
 		return diary.getDirectory();
 	});
-	ipcMain.handle(IPC.diary.setDirectory, (_, directory: string): Promise<void> => diary.setDirectory(directory));
+	ipcMain.handle(
+		IPC.diary.setDirectory,
+		(_, directory: string): Promise<void> => diary.setDirectory(directory),
+	);
 
-	ipcMain.handle(IPC.preferences.set, async (_, key: keyof PreferenceValues, value: PreferenceValues[keyof PreferenceValues]): Promise<void> => {
-		if (!(key in defaults)) throw Error("Invalid preference");
-		settings.set(key, value);
-		if (key === "filePath") await diary.setDirectory(value as string);
-	});
+	ipcMain.handle(
+		IPC.preferences.set,
+		async (
+			_,
+			key: keyof PreferenceValues,
+			value: PreferenceValues[keyof PreferenceValues],
+		): Promise<void> => {
+			if (!(key in defaults)) throw Error("Invalid preference");
+			settings.set(key, value);
+			if (key === "filePath") await diary.setDirectory(value as string);
+		},
+	);
 }

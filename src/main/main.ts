@@ -62,20 +62,17 @@ app.on("window-all-closed", (): void => {
 	app.quit();
 });
 
-app.on("before-quit", event => {
+app.on("before-quit", (event) => {
 	event.preventDefault();
 	void diaryService.flush().finally(() => app.exit());
 });
 
 // On app activation (e.g. when clicking dock icon), re-create BrowserWindow if necessary
-app.on(
-	"activate",
-	async (): Promise<void> => {
-		if (!getWindow()) {
-			setWindow(await createWindow());
-		}
-	},
-);
+app.on("activate", async (): Promise<void> => {
+	if (!getWindow()) {
+		setWindow(await createWindow());
+	}
+});
 
 (async (): Promise<void> => {
 	// Wait for Electron to be initialized

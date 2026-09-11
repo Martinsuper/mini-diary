@@ -13,10 +13,15 @@ test.beforeAll(async (): Promise<void> => {
 	userDataDirectory = await mkdtemp(path.join(os.tmpdir(), "mini-diary-ui-"));
 	app = await electron.launch({
 		args: ["."],
-		env: { ...process.env, ELECTRON_USER_DATA_DIR: userDataDirectory, LANG: "en_US.UTF-8", TZ: "UTC" },
+		env: {
+			...process.env,
+			ELECTRON_USER_DATA_DIR: userDataDirectory,
+			LANG: "en_US.UTF-8",
+			TZ: "UTC",
+		},
 	});
 	page = await app.firstWindow();
-	page.on("pageerror", error => console.error(error));
+	page.on("pageerror", (error) => console.error(error));
 	const passwords = page.locator('input[type="password"]');
 	await passwords.nth(0).fill(password);
 	await passwords.nth(1).fill(password);
@@ -29,7 +34,9 @@ test.afterAll(async (): Promise<void> => {
 	if (userDataDirectory) await rm(userDataDirectory, { force: true, recursive: true });
 });
 
-async function box(selector: string): Promise<{ height: number; width: number; x: number; y: number }> {
+async function box(
+	selector: string,
+): Promise<{ height: number; width: number; x: number; y: number }> {
 	const value = await page.locator(selector).boundingBox();
 	if (!value) throw Error(`Element not found: ${selector}`);
 	return value;
@@ -43,14 +50,24 @@ test("keeps header and search icons fully visible", async (): Promise<void> => {
 
 	expect(searchIcon.x).toBeGreaterThanOrEqual(searchWrapper.x);
 	expect(searchIcon.y).toBeGreaterThanOrEqual(searchWrapper.y);
-	expect(searchIcon.x + searchIcon.width).toBeLessThanOrEqual(searchWrapper.x + searchWrapper.width);
-	expect(searchIcon.y + searchIcon.height).toBeLessThanOrEqual(searchWrapper.y + searchWrapper.height);
+	expect(searchIcon.x + searchIcon.width).toBeLessThanOrEqual(
+		searchWrapper.x + searchWrapper.width,
+	);
+	expect(searchIcon.y + searchIcon.height).toBeLessThanOrEqual(
+		searchWrapper.y + searchWrapper.height,
+	);
 	expect(settingsIcon.x).toBeGreaterThanOrEqual(settingsButton.x);
 	expect(settingsIcon.y).toBeGreaterThanOrEqual(settingsButton.y);
-	expect(settingsIcon.x + settingsIcon.width).toBeLessThanOrEqual(settingsButton.x + settingsButton.width);
-	expect(settingsIcon.y + settingsIcon.height).toBeLessThanOrEqual(settingsButton.y + settingsButton.height);
+	expect(settingsIcon.x + settingsIcon.width).toBeLessThanOrEqual(
+		settingsButton.x + settingsButton.width,
+	);
+	expect(settingsIcon.y + settingsIcon.height).toBeLessThanOrEqual(
+		settingsButton.y + settingsButton.height,
+	);
 	await expect(page.locator(".search-input-wrapper")).toHaveScreenshot("search-input.png");
-	await expect(page.locator(".app-icon-button")).toHaveScreenshot("settings-button.png", { maxDiffPixels: 32 });
+	await expect(page.locator(".app-icon-button")).toHaveScreenshot("settings-button.png", {
+		maxDiffPixels: 32,
+	});
 });
 
 test("preserves the legacy sidebar and editor geometry", async (): Promise<void> => {
@@ -62,11 +79,21 @@ test("preserves the legacy sidebar and editor geometry", async (): Promise<void>
 	const content = await box(".lexical-content-editable");
 	const toolbar = await box(".editor-toolbar");
 	const day = await box(".DayPicker-Day--selected .DayPicker-DayButton");
-	const weekdayHeaders = await page.locator(".DayPicker-Weekday").evaluateAll(elements => elements.map(element => element.getBoundingClientRect().x));
-	const firstWeekDays = await page.locator(".DayPicker-Week").first().locator(".DayPicker-Day").evaluateAll(elements => elements.map(element => element.getBoundingClientRect().x));
-	const titleStyles = await page.locator(".editor-title-input").evaluate(element => {
+	const weekdayHeaders = await page
+		.locator(".DayPicker-Weekday")
+		.evaluateAll((elements) => elements.map((element) => element.getBoundingClientRect().x));
+	const firstWeekDays = await page
+		.locator(".DayPicker-Week")
+		.first()
+		.locator(".DayPicker-Day")
+		.evaluateAll((elements) => elements.map((element) => element.getBoundingClientRect().x));
+	const titleStyles = await page.locator(".editor-title-input").evaluate((element) => {
 		const style = getComputedStyle(element);
-		return { background: style.backgroundColor, border: style.borderStyle, shadow: style.boxShadow };
+		return {
+			background: style.backgroundColor,
+			border: style.borderStyle,
+			shadow: style.boxShadow,
+		};
 	});
 
 	expect(sidebar.width).toBe(288);
@@ -84,10 +111,16 @@ test("preserves the legacy sidebar and editor geometry", async (): Promise<void>
 	expect(titleStyles.background).toBe("rgba(0, 0, 0, 0)");
 	expect(weekdayHeaders).toHaveLength(7);
 	expect(firstWeekDays).toHaveLength(7);
-	weekdayHeaders.forEach((position, index) => expect(position).toBeCloseTo(firstWeekDays[index], 0));
-	const selectedStyles = await page.locator(".DayPicker-Day--selected").evaluate(element => {
+	weekdayHeaders.forEach((position, index) =>
+		expect(position).toBeCloseTo(firstWeekDays[index], 0),
+	);
+	const selectedStyles = await page.locator(".DayPicker-Day--selected").evaluate((element) => {
 		const style = getComputedStyle(element);
-		return { background: style.backgroundColor, shadow: style.boxShadow, border: style.borderStyle };
+		return {
+			background: style.backgroundColor,
+			shadow: style.boxShadow,
+			border: style.borderStyle,
+		};
 	});
 	expect(selectedStyles.background).toBe("rgba(0, 0, 0, 0)");
 	expect(selectedStyles.shadow).toBe("none");
@@ -98,8 +131,10 @@ test("preserves the legacy sidebar and editor geometry", async (): Promise<void>
 test("aligns formatting controls to a uniform grid", async (): Promise<void> => {
 	const buttons = page.locator(".formatting-buttons .button");
 	const icons = page.locator(".formatting-buttons svg");
-	const buttonBoxes = await Promise.all((await buttons.all()).map(button => button.boundingBox()));
-	const iconBoxes = await Promise.all((await icons.all()).map(icon => icon.boundingBox()));
+	const buttonBoxes = await Promise.all(
+		(await buttons.all()).map((button) => button.boundingBox()),
+	);
+	const iconBoxes = await Promise.all((await icons.all()).map((icon) => icon.boundingBox()));
 
 	expect(buttonBoxes).toHaveLength(4);
 	expect(iconBoxes).toHaveLength(4);
@@ -113,5 +148,7 @@ test("aligns formatting controls to a uniform grid", async (): Promise<void> => 
 		expect(icon?.width).toBe(20);
 		expect(icon?.height).toBe(20);
 	}
-	await expect(page.locator(".formatting-buttons")).toHaveScreenshot("formatting-buttons.png", { maxDiffPixels: 64 });
+	await expect(page.locator(".formatting-buttons")).toHaveScreenshot("formatting-buttons.png", {
+		maxDiffPixels: 64,
+	});
 });

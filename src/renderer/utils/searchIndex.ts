@@ -39,7 +39,7 @@ function createSearchIndex(): MiniSearch {
 }
 
 function yieldToBrowser(): Promise<void> {
-	return new Promise(resolve => setTimeout(resolve, 0));
+	return new Promise((resolve) => setTimeout(resolve, 0));
 }
 
 function enqueueUpdate(update: () => Promise<void>): Promise<void> {
@@ -55,8 +55,10 @@ export function createIndex(entries: Entries): Promise<void> {
 
 		for (let start = 0; start < entryList.length; start += BATCH_SIZE) {
 			const batch = entryList.slice(start, start + BATCH_SIZE);
-			const docs = await Promise.all(batch.map(([indexDate, entry]) => createIndexDoc(indexDate, entry)));
-			docs.forEach(doc => nextDocuments.set(doc.indexDate, doc));
+			const docs = await Promise.all(
+				batch.map(([indexDate, entry]) => createIndexDoc(indexDate, entry)),
+			);
+			docs.forEach((doc) => nextDocuments.set(doc.indexDate, doc));
 			nextIndex.addAll(docs);
 			if (start + BATCH_SIZE < entryList.length) await yieldToBrowser();
 		}
@@ -85,10 +87,14 @@ export function removeIndexDoc(indexDate: IndexDate): Promise<void> {
 	});
 }
 
-export function updateIndexDoc(indexDate: IndexDate, entryOld: DiaryEntry, entryUpdated: DiaryEntry): Promise<void> {
+export function updateIndexDoc(
+	indexDate: IndexDate,
+	entryOld: DiaryEntry,
+	entryUpdated: DiaryEntry,
+): Promise<void> {
 	return enqueueUpdate(async (): Promise<void> => {
 		if (!index) return;
-		const oldDoc = documents.get(indexDate) || await createIndexDoc(indexDate, entryOld);
+		const oldDoc = documents.get(indexDate) || (await createIndexDoc(indexDate, entryOld));
 		const newDoc = await createIndexDoc(indexDate, entryUpdated);
 		index.remove(oldDoc);
 		index.add(newDoc);
@@ -98,7 +104,11 @@ export function updateIndexDoc(indexDate: IndexDate, entryOld: DiaryEntry, entry
 
 const pendingIndexUpdates = new Map<IndexDate, DebouncedIndexUpdate>();
 
-export function scheduleIndexUpdate(indexDate: IndexDate, entryOld: DiaryEntry, entryUpdated: DiaryEntry): void {
+export function scheduleIndexUpdate(
+	indexDate: IndexDate,
+	entryOld: DiaryEntry,
+	entryUpdated: DiaryEntry,
+): void {
 	let update = pendingIndexUpdates.get(indexDate);
 	if (!update) {
 		update = debounce((oldEntry: DiaryEntry, newEntry: DiaryEntry): void => {
@@ -118,17 +128,18 @@ export function cancelIndexUpdate(indexDate: IndexDate): void {
 }
 
 export function flushIndexUpdates(): void {
-	pendingIndexUpdates.forEach(update => update.flush());
+	pendingIndexUpdates.forEach((update) => update.flush());
 }
 
 export function cancelIndexUpdates(): void {
-	pendingIndexUpdates.forEach(update => update.cancel());
+	pendingIndexUpdates.forEach((update) => update.cancel());
 	pendingIndexUpdates.clear();
 }
 
 export function searchIndex(key: string): string[] {
 	if (!index || !key) return [];
-	return index.search(key, { prefix: true })
+	return index
+		.search(key, { prefix: true })
 		.map((searchResult: SearchResult): string => searchResult.id)
 		.sort()
 		.reverse()

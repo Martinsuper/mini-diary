@@ -49,33 +49,34 @@ export function setImportFormat(importFormat: ImportFormat): SetImportFormatActi
 
 // Thunks
 
-export const runImport = (fileContent: string): ThunkActionT => async (dispatch, getState): Promise<void> => {
-	const { importFormat } = getState().import;
+export const runImport =
+	(fileContent: string): ThunkActionT =>
+	async (dispatch, getState): Promise<void> => {
+		const { importFormat } = getState().import;
 
-	dispatch(setImportInProgress());
-	try {
+		dispatch(setImportInProgress());
+		try {
+			// Get parser function for import format
+			let parseFunc;
+			if (importFormat === "jsonDayOne") {
+				parseFunc = parseDayOneJson;
+			} else if (importFormat === "jsonJrnl") {
+				parseFunc = parseJrnlJson;
+			} else if (importFormat === "jsonMiniDiary") {
+				parseFunc = parseMiniDiaryJson;
+			} else if (importFormat === "txtDayOne") {
+				parseFunc = parseDayOneTxt;
+			} else {
+				throw Error(`Unrecognized importFormat "${importFormat}"`);
+			}
 
-		// Get parser function for import format
-		let parseFunc;
-		if (importFormat === "jsonDayOne") {
-			parseFunc = parseDayOneJson;
-		} else if (importFormat === "jsonJrnl") {
-			parseFunc = parseJrnlJson;
-		} else if (importFormat === "jsonMiniDiary") {
-			parseFunc = parseMiniDiaryJson;
-		} else if (importFormat === "txtDayOne") {
-			parseFunc = parseDayOneTxt;
-		} else {
-			throw Error(`Unrecognized importFormat "${importFormat}"`);
+			// Parse file and make it compatible with Mini Diary
+			const json = parseFunc(fileContent);
+			await dispatch(mergeUpdateFile(json));
+			dispatch(setImportSuccess());
+			dispatch(closeOverlay());
+		} catch (err) {
+			console.error("Error importing diary file: ", err);
+			dispatch(setImportError(err.toString()));
 		}
-
-		// Parse file and make it compatible with Mini Diary
-		const json = parseFunc(fileContent);
-		await dispatch(mergeUpdateFile(json));
-		dispatch(setImportSuccess());
-		dispatch(closeOverlay());
-	} catch (err) {
-		console.error("Error importing diary file: ", err);
-		dispatch(setImportError(err.toString()));
-	}
-};
+	};

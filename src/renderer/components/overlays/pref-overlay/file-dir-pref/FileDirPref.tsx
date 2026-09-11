@@ -38,7 +38,9 @@ export default function FileDirPref(props: Props): ReactElement {
 	};
 
 	const selectDir = async (): Promise<void> => {
-		const directory = await window.miniDiary.dialogs.selectDirectory(translations["select-directory"]);
+		const directory = await window.miniDiary.dialogs.selectDirectory(
+			translations["select-directory"],
+		);
 		if (!directory) {
 			return;
 		}

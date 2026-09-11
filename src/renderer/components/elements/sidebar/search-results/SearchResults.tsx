@@ -55,7 +55,11 @@ export default class SearchResults extends PureComponent<Props, {}> {
 	render(): ReactNode {
 		const searchResultsEl = this.generateSearchResults();
 		return (
-			<ul aria-live="polite" aria-label={`${searchResultsEl.length} ${translations.search}`} className="search-results">
+			<ul
+				aria-live="polite"
+				aria-label={`${searchResultsEl.length} ${translations.search}`}
+				className="search-results"
+			>
 				{searchResultsEl.length === 0 ? (
 					<li>
 						<Banner

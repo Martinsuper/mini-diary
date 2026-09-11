@@ -41,13 +41,21 @@ function deriveKey(password: string, salt: Buffer): Promise<Buffer> {
 function isEncryptedDiary(value: unknown): value is EncryptedDiary {
 	if (!value || typeof value !== "object") return false;
 	const data = value as Record<string, unknown>;
-	return data.format === FORMAT && ["ciphertext", "nonce", "salt", "tag"].every(key => typeof data[key] === "string");
+	return (
+		data.format === FORMAT &&
+		["ciphertext", "nonce", "salt", "tag"].every((key) => typeof data[key] === "string")
+	);
 }
 
 function isDiaryPayload(value: unknown): value is MiniDiaryJson {
 	if (!value || typeof value !== "object") return false;
 	const data = value as Record<string, unknown>;
-	return Boolean(data.entries && data.metadata && typeof data.entries === "object" && typeof data.metadata === "object");
+	return Boolean(
+		data.entries &&
+			data.metadata &&
+			typeof data.entries === "object" &&
+			typeof data.metadata === "object",
+	);
 }
 
 export default class DiaryService {
@@ -119,9 +127,16 @@ export default class DiaryService {
 		if (!isEncryptedDiary(encrypted)) throw Error("Unsupported diary file format");
 		const salt = Buffer.from(encrypted.salt, "base64");
 		const key = await deriveKey(password, salt);
-		const decipher = crypto.createDecipheriv("aes-256-gcm", key, Buffer.from(encrypted.nonce, "base64"));
+		const decipher = crypto.createDecipheriv(
+			"aes-256-gcm",
+			key,
+			Buffer.from(encrypted.nonce, "base64"),
+		);
 		decipher.setAuthTag(Buffer.from(encrypted.tag, "base64"));
-		const plaintext = Buffer.concat([decipher.update(Buffer.from(encrypted.ciphertext, "base64")), decipher.final()]);
+		const plaintext = Buffer.concat([
+			decipher.update(Buffer.from(encrypted.ciphertext, "base64")),
+			decipher.final(),
+		]);
 		const payload = JSON.parse(plaintext.toString("utf8")) as unknown;
 		if (!isDiaryPayload(payload)) throw Error("Diary file has an invalid payload");
 		this.session = { entries: payload.entries, key, metadata: payload.metadata, salt };
@@ -175,7 +190,11 @@ export default class DiaryService {
 	}
 
 	private metadata(): Metadata {
-		return { application: app.name, dateUpdated: new Date().toISOString(), version: app.getVersion() };
+		return {
+			application: app.name,
+			dateUpdated: new Date().toISOString(),
+			version: app.getVersion(),
+		};
 	}
 
 	private requireSession(): Session {
@@ -192,14 +211,17 @@ export default class DiaryService {
 		this.writeQueued = true;
 		if (this.writing) return;
 		this.writing = true;
-		this.writePromise = this.writePromise.catch(() => undefined).then(async (): Promise<void> => {
-			while (this.writeQueued) {
-				this.writeQueued = false;
-				await this.write();
-			}
-		}).finally((): void => {
-			this.writing = false;
-		});
+		this.writePromise = this.writePromise
+			.catch(() => undefined)
+			.then(async (): Promise<void> => {
+				while (this.writeQueued) {
+					this.writeQueued = false;
+					await this.write();
+				}
+			})
+			.finally((): void => {
+				this.writing = false;
+			});
 	}
 
 	private scheduleWrite(): void {
@@ -212,11 +234,17 @@ export default class DiaryService {
 
 	private async write(): Promise<void> {
 		const session = this.requireSession();
-		const payload = { entries: session.entries, metadata: { ...session.metadata, dateUpdated: new Date().toISOString() } };
+		const payload = {
+			entries: session.entries,
+			metadata: { ...session.metadata, dateUpdated: new Date().toISOString() },
+		};
 		session.metadata = payload.metadata;
 		const nonce = crypto.randomBytes(12);
 		const cipher = crypto.createCipheriv("aes-256-gcm", session.key, nonce);
-		const ciphertext = Buffer.concat([cipher.update(JSON.stringify(payload), "utf8"), cipher.final()]);
+		const ciphertext = Buffer.concat([
+			cipher.update(JSON.stringify(payload), "utf8"),
+			cipher.final(),
+		]);
 		const serialized = JSON.stringify({
 			ciphertext: ciphertext.toString("base64"),
 			format: FORMAT,

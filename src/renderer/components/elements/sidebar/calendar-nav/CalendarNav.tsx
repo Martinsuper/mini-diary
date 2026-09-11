@@ -21,12 +21,8 @@ export interface DispatchProps {
 type Props = StateProps & DispatchProps;
 
 export default function CalendarNav(props: Props): ReactElement {
-	const {
-		allowFutureEntries,
-		dateSelected,
-		setMonthSelectedNext,
-		setMonthSelectedPrevious,
-	} = props;
+	const { allowFutureEntries, dateSelected, setMonthSelectedNext, setMonthSelectedPrevious } =
+		props;
 
 	const today = createDate();
 

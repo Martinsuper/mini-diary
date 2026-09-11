@@ -32,49 +32,59 @@ function setExportSuccess(): SetExportSuccessAction {
 	return { type: EXPORT_SUCCESS };
 }
 
-const exportToFile = (
-	converterFunc: (entries: Entries) => Promise<string>,
-	exportFormat: Exclude<ExportFormat, "pdf">,
-): ThunkActionT => async (dispatch, getState): Promise<void> => {
-	dispatch(setExportInProgress());
-	try {
-		const content = await converterFunc(getState().file.entries);
-		await window.miniDiary.dialogs.exportFile(
-			`mini-diary-export.${fileExtensions[exportFormat]}`,
-			translations.export,
-			content,
-		);
-		dispatch(setExportSuccess());
-	} catch (error) {
-		console.error("Error exporting diary file: ", error);
-		dispatch(setExportError(error.toString()));
-	}
-};
+const exportToFile =
+	(
+		converterFunc: (entries: Entries) => Promise<string>,
+		exportFormat: Exclude<ExportFormat, "pdf">,
+	): ThunkActionT =>
+	async (dispatch, getState): Promise<void> => {
+		dispatch(setExportInProgress());
+		try {
+			const content = await converterFunc(getState().file.entries);
+			await window.miniDiary.dialogs.exportFile(
+				`mini-diary-export.${fileExtensions[exportFormat]}`,
+				translations.export,
+				content,
+			);
+			dispatch(setExportSuccess());
+		} catch (error) {
+			console.error("Error exporting diary file: ", error);
+			dispatch(setExportError(error.toString()));
+		}
+	};
 
-export const exportToJsonMiniDiary = (): ThunkActionT => (dispatch): void => {
-	dispatch(exportToFile(convertToMiniDiaryJson, "jsonMiniDiary"));
-};
+export const exportToJsonMiniDiary =
+	(): ThunkActionT =>
+	(dispatch): void => {
+		dispatch(exportToFile(convertToMiniDiaryJson, "jsonMiniDiary"));
+	};
 
-export const exportToMd = (): ThunkActionT => (dispatch): void => {
-	dispatch(exportToFile(convertToMd, "md"));
-};
+export const exportToMd =
+	(): ThunkActionT =>
+	(dispatch): void => {
+		dispatch(exportToFile(convertToMd, "md"));
+	};
 
-export const exportToPdf = (): ThunkActionT => async (dispatch, getState): Promise<void> => {
-	dispatch(setExportInProgress());
-	try {
-		const markdown = await convertToMd(getState().file.entries);
-		await window.miniDiary.dialogs.exportPdf(
-			`mini-diary-export.${fileExtensions.pdf}`,
-			translations.export,
-			markdown,
-		);
-		dispatch(setExportSuccess());
-	} catch (error) {
-		console.error("Error exporting diary file: ", error);
-		dispatch(setExportError(error.toString()));
-	}
-};
+export const exportToPdf =
+	(): ThunkActionT =>
+	async (dispatch, getState): Promise<void> => {
+		dispatch(setExportInProgress());
+		try {
+			const markdown = await convertToMd(getState().file.entries);
+			await window.miniDiary.dialogs.exportPdf(
+				`mini-diary-export.${fileExtensions.pdf}`,
+				translations.export,
+				markdown,
+			);
+			dispatch(setExportSuccess());
+		} catch (error) {
+			console.error("Error exporting diary file: ", error);
+			dispatch(setExportError(error.toString()));
+		}
+	};
 
-export const exportToTxtDayOne = (): ThunkActionT => (dispatch): void => {
-	dispatch(exportToFile(convertToDayOneTxt, "txtDayOne"));
-};
+export const exportToTxtDayOne =
+	(): ThunkActionT =>
+	(dispatch): void => {
+		dispatch(exportToFile(convertToDayOneTxt, "txtDayOne"));
+	};

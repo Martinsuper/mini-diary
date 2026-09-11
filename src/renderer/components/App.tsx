@@ -11,8 +11,12 @@ import PasswordCreationContainer from "./pages/start-page/password-creation/Pass
 import PasswordPromptContainer from "./pages/start-page/password-prompt/PasswordPromptContainer";
 import ThemeContext from "./ThemeContext";
 
-const GoToDateOverlayContainer = lazy(() => import("./overlays/go-to-date-overlay/GoToDateOverlayContainer"));
-const ImportOverlayContainer = lazy(() => import("./overlays/import-overlay/ImportOverlayContainer"));
+const GoToDateOverlayContainer = lazy(
+	() => import("./overlays/go-to-date-overlay/GoToDateOverlayContainer"),
+);
+const ImportOverlayContainer = lazy(
+	() => import("./overlays/import-overlay/ImportOverlayContainer"),
+);
 const PrefOverlayContainer = lazy(() => import("./overlays/pref-overlay/PrefOverlayContainer"));
 const StatsOverlayContainer = lazy(() => import("./overlays/stats-overlay/StatsOverlayContainer"));
 
@@ -145,16 +149,22 @@ export default class App extends Component<Props, State> {
 										{isThemeMenuOpen && (
 											<div className="theme-menu" role="dialog" aria-label="Appearance settings">
 												<p className="theme-menu-title">Appearance</p>
-												{(["auto", "light", "dark"] as ThemePref[]).map((option): ReactNode => (
-													<button
-														key={option}
-														type="button"
-														className={`theme-menu-option ${themePref === option ? "is-active" : ""}`}
-														onClick={(): void => this.setThemePref(option)}
-													>
-														{option === "auto" ? "System" : option.charAt(0).toUpperCase() + option.slice(1)}
-													</button>
-												))}
+												{(["auto", "light", "dark"] as ThemePref[]).map(
+													(option): ReactNode => (
+														<button
+															key={option}
+															type="button"
+															className={`theme-menu-option ${
+																themePref === option ? "is-active" : ""
+															}`}
+															onClick={(): void => this.setThemePref(option)}
+														>
+															{option === "auto"
+																? "System"
+																: option.charAt(0).toUpperCase() + option.slice(1)}
+														</button>
+													),
+												)}
 											</div>
 										)}
 									</div>

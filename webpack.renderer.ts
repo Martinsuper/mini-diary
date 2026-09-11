@@ -37,18 +37,22 @@ export default (
 		},
 		plugins: [
 			new HtmlWebpackPlugin({
-					title: pkg.productName,
-					meta: {
-						"Content-Security-Policy": {
-							"http-equiv": "Content-Security-Policy",
-							content: "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self' data:",
-						},
+				title: pkg.productName,
+				meta: {
+					"Content-Security-Policy": {
+						"http-equiv": "Content-Security-Policy",
+						content:
+							"default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self' data:",
 					},
-				}),
+				},
+			}),
 		],
 		resolve: {
 			alias: {
-				"moment-timezone$": path.resolve(__dirname, "node_modules/moment-timezone/builds/moment-timezone-with-data-10-year-range.js"),
+				"moment-timezone$": path.resolve(
+					__dirname,
+					"node_modules/moment-timezone/builds/moment-timezone-with-data-10-year-range.js",
+				),
 			},
 			fallback: {
 				assert: false,

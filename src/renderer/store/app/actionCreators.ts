@@ -95,38 +95,42 @@ export function setThemePref(themePref: ThemePref): SetThemePrefAction {
 
 // Thunks
 
-export const updateSpellcheckPref = (enableSpellcheck: boolean): ThunkActionT => (
-	dispatch,
-): void => {
-	dispatch(setEnableSpellcheck(enableSpellcheck));
-	void window.miniDiary.preferences.set("enableSpellcheck", enableSpellcheck);
-};
+export const updateSpellcheckPref =
+	(enableSpellcheck: boolean): ThunkActionT =>
+	(dispatch): void => {
+		dispatch(setEnableSpellcheck(enableSpellcheck));
+		void window.miniDiary.preferences.set("enableSpellcheck", enableSpellcheck);
+	};
 
-export const updateFutureEntriesPref = (allowFutureEntries: boolean): ThunkActionT => (
-	dispatch,
-): void => {
-	dispatch(setAllowFutureEntries(allowFutureEntries));
-	void window.miniDiary.preferences.set("allowFutureEntries", allowFutureEntries);
-};
+export const updateFutureEntriesPref =
+	(allowFutureEntries: boolean): ThunkActionT =>
+	(dispatch): void => {
+		dispatch(setAllowFutureEntries(allowFutureEntries));
+		void window.miniDiary.preferences.set("allowFutureEntries", allowFutureEntries);
+	};
 
-export const updateHideTitlesPref = (hideTitles: boolean): ThunkActionT => (dispatch): void => {
-	dispatch(setHideTitles(hideTitles));
-	void window.miniDiary.preferences.set("hideTitles", hideTitles);
-};
+export const updateHideTitlesPref =
+	(hideTitles: boolean): ThunkActionT =>
+	(dispatch): void => {
+		dispatch(setHideTitles(hideTitles));
+		void window.miniDiary.preferences.set("hideTitles", hideTitles);
+	};
 
-export const updateFirstDayOfWeekPref = (firstDayOfWeek: Weekday | null): ThunkActionT => (
-	dispatch,
-): void => {
-	dispatch(setFirstDayOfWeek(firstDayOfWeek));
-	void window.miniDiary.preferences.set("firstDayOfWeek", firstDayOfWeek);
-};
+export const updateFirstDayOfWeekPref =
+	(firstDayOfWeek: Weekday | null): ThunkActionT =>
+	(dispatch): void => {
+		dispatch(setFirstDayOfWeek(firstDayOfWeek));
+		void window.miniDiary.preferences.set("firstDayOfWeek", firstDayOfWeek);
+	};
 
-export const updateThemePref = (themePref: ThemePref): ThunkActionT => (dispatch): void => {
-	// Apply theme to app
-	const theme = getThemeFromPref(themePref);
-	dispatch(setTheme(theme));
+export const updateThemePref =
+	(themePref: ThemePref): ThunkActionT =>
+	(dispatch): void => {
+		// Apply theme to app
+		const theme = getThemeFromPref(themePref);
+		dispatch(setTheme(theme));
 
-	// Update theme preference in state and preferences file
-	dispatch(setThemePref(themePref));
-	void window.miniDiary.preferences.set("theme", themePref);
-};
+		// Update theme preference in state and preferences file
+		dispatch(setThemePref(themePref));
+		void window.miniDiary.preferences.set("theme", themePref);
+	};
