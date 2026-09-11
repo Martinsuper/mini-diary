@@ -19,11 +19,10 @@ import { OnChangePlugin } from "@lexical/react/LexicalOnChangePlugin";
 import { RichTextPlugin } from "@lexical/react/LexicalRichTextPlugin";
 import debounce from "lodash.debounce";
 import { Moment } from "moment-timezone";
-import React, { FormEvent, ReactElement, useEffect, useMemo, useState } from "react";
+import React, { FormEvent, ReactElement, useEffect, useMemo, useRef, useState } from "react";
 
 import { Entries, IndexDate } from "../../../../types";
 import { toIndexDate, toLocaleWeekday } from "../../../../utils/dateFormat";
-import { titleDisplayValue } from "../../../../utils/entryTitle";
 import { translations } from "../../../../utils/i18n";
 import EditorToolbar from "../editor-toolbar/editor-toolbar/EditorToolbar";
 
@@ -93,6 +92,7 @@ export default function Editor(props: Props): ReactElement {
 	const entry = entries[indexDate];
 	const [title, setTitle] = useState(entry?.title ?? "");
 	const [text, setText] = useState(entry?.text ?? "");
+	const titleRef = useRef<HTMLDivElement>(null);
 
 	const saveEntry = useMemo(
 		() =>
@@ -117,8 +117,10 @@ export default function Editor(props: Props): ReactElement {
 
 	useEffect(() => (): void => saveEntry.flush(), [saveEntry]);
 	useEffect((): void => {
-		setTitle(entry?.title ?? "");
+		const entryTitle = entry?.title ?? "";
+		setTitle(entryTitle);
 		setText(entry?.text ?? "");
+		if (titleRef.current) titleRef.current.textContent = entryTitle;
 	}, [indexDate]);
 
 	const onTitleInput = (event: FormEvent<HTMLDivElement>): void => {
@@ -149,15 +151,14 @@ export default function Editor(props: Props): ReactElement {
 								aria-label={translations["add-a-title"]}
 								className={`editor-title-input ${title ? "" : "is-empty"}`}
 								contentEditable
+								ref={titleRef}
 								onBlur={(): void => saveEntry.flush()}
 								onInput={onTitleInput}
 								onKeyDown={onTitleKeyDown}
 								role="textbox"
 								spellCheck={enableSpellcheck}
 								suppressContentEditableWarning
-							>
-								{titleDisplayValue(title)}
-							</div>
+							/>
 						</div>
 					)}
 					<div className="editor-text-wrapper">
