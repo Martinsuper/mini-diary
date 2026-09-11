@@ -1,3 +1,8 @@
+# Local workspace metadata
+.claude/
+.sdlc/
+.DS_Store
+
 # NPM
 node_modules/
 
@@ -16,6 +21,9 @@ dist/
 # Playwright reports
 playwright-report/
 test-results/
+
+# Isolated agent worktrees
+.worktrees/
 
 # Generated website assets
 website/index.js
