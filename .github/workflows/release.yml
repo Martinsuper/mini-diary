@@ -29,13 +29,14 @@ jobs:
           snapcraft_token: ${{ secrets.snapcraft_token }}
 
       - name: Prepare for app notarization (macOS)
-        if: startsWith(matrix.os, 'macos')
+        if: startsWith(matrix.os, 'macos') && secrets.mac_certs != ''
         # Import Apple API key for app notarization on macOS
         run: |
           mkdir -p ~/private_keys/
           echo '${{ secrets.api_key }}' > ~/private_keys/AuthKey_${{ secrets.api_key_id }}.p8
 
-      - name: Build/release Electron app
+      - name: Build/release signed Electron app
+        if: ${{ !startsWith(matrix.os, 'macos') || secrets.mac_certs != '' }}
         uses: samuelmeuli/action-electron-builder@v1
         with:
           # GitHub token, automatically provided to the action
@@ -53,3 +54,13 @@ jobs:
           # macOS notarization API key
           API_KEY_ID: ${{ secrets.api_key_id }}
           API_KEY_ISSUER_ID: ${{ secrets.api_key_issuer_id }}
+
+      - name: Build/release unsigned macOS app
+        if: startsWith(matrix.os, 'macos') && secrets.mac_certs == ''
+        env:
+          GH_TOKEN: ${{ secrets.github_token }}
+          CSC_IDENTITY_AUTO_DISCOVERY: false
+        run: |
+          yarn install --frozen-lockfile
+          yarn build
+          yarn electron-builder --mac dmg zip --publish always
