@@ -9,7 +9,7 @@
 		"email": "me@samuelmeuli.com",
 		"url": "https://samuelmeuli.com"
 	},
-	"repository": "github:samuelmeuli/mini-diary",
+	"repository": "github:Martinsuper/mini-diary",
 	"homepage": "https://minidiary.app",
 	"license": "MIT",
 	"private": true,
@@ -201,6 +201,11 @@
 	"prettier": "@samuelmeuli/prettier-config",
 	"build": {
 		"appId": "com.samuelmeuli.minidiary",
+		"publish": {
+			"provider": "github",
+			"owner": "Martinsuper",
+			"repo": "mini-diary"
+		},
 		"files": [
 			"!**/*",
 			"./bundle/**/*"
