@@ -9,77 +9,94 @@ permissions:
   contents: write
 
 jobs:
-  release:
+  build:
+    name: Build ${{ matrix.platform }} installer
     runs-on: ${{ matrix.os }}
-    env:
-      HAS_MAC_CERTS: ${{ secrets.mac_certs != '' }}
-
-    # Platforms to build on/for
     strategy:
+      fail-fast: false
       matrix:
-        os: [macos-latest, ubuntu-latest, windows-latest]
+        include:
+          - platform: macOS
+            os: macos-latest
+          - platform: Linux
+            os: ubuntu-latest
+          - platform: Windows
+            os: windows-latest
 
     steps:
       - name: Check out Git repository
         uses: actions/checkout@v4
 
-      - name: Install Node.js, NPM and Yarn
+      - name: Install Node.js and Yarn
         uses: actions/setup-node@v4
         with:
           node-version: 22
 
-      - name: Install Snapcraft
-        uses: samuelmeuli/action-snapcraft@v1
-        # Only install Snapcraft on Ubuntu
-        if: startsWith(matrix.os, 'ubuntu')
-        with:
-          # Log in to Snap Store
-          snapcraft_token: ${{ secrets.snapcraft_token }}
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
 
-      - name: Prepare for app notarization (macOS)
-        if: startsWith(matrix.os, 'macos') && env.HAS_MAC_CERTS == 'true'
-        # Import Apple API key for app notarization on macOS
-        run: |
-          mkdir -p ~/private_keys/
-          echo '${{ secrets.api_key }}' > ~/private_keys/AuthKey_${{ secrets.api_key_id }}.p8
+      - name: Build application
+        run: yarn build
 
-      - name: Build/release signed Electron app
-        if: ${{ !startsWith(matrix.os, 'macos') || env.HAS_MAC_CERTS == 'true' }}
-        uses: samuelmeuli/action-electron-builder@v1
-        with:
-          # GitHub token, automatically provided to the action
-          # (No need to define this secret in the repo settings)
-          github_token: ${{ secrets.github_token }}
-
-          # macOS code signing certificate
-          mac_certs: ${{ secrets.mac_certs }}
-          mac_certs_password: ${{ secrets.mac_certs_password }}
-
-          # If the commit is tagged with a version (e.g. "v1.0.0"),
-          # release the app after building
-          release: ${{ startsWith(github.ref, 'refs/tags/v') }}
+      - name: Build macOS installer
+        if: matrix.platform == 'macOS'
         env:
-          # macOS notarization API key
-          API_KEY_ID: ${{ secrets.api_key_id }}
-          API_KEY_ISSUER_ID: ${{ secrets.api_key_issuer_id }}
-
-      - name: Build/release unsigned macOS app
-        if: startsWith(matrix.os, 'macos') && env.HAS_MAC_CERTS != 'true'
-        env:
-          GH_TOKEN: ${{ secrets.github_token }}
           CSC_IDENTITY_AUTO_DISCOVERY: false
-        run: |
-          yarn install --frozen-lockfile
-          yarn build
-          yarn electron-builder --mac dmg --publish always
+        run: yarn electron-builder --mac dmg --publish never
 
-  clean-release-assets:
-    name: Keep installers only
-    needs: release
-    if: ${{ always() && startsWith(github.ref, 'refs/tags/v') }}
+      - name: Build Linux installers
+        if: matrix.platform == 'Linux'
+        run: yarn electron-builder --linux AppImage deb --publish never
+
+      - name: Build Windows installer
+        if: matrix.platform == 'Windows'
+        run: yarn electron-builder --win nsis --publish never
+
+      - name: Upload macOS installer
+        if: matrix.platform == 'macOS'
+        uses: actions/upload-artifact@v4
+        with:
+          name: macOS-installer
+          path: dist/*.dmg
+          if-no-files-found: error
+
+      - name: Upload Linux installers
+        if: matrix.platform == 'Linux'
+        uses: actions/upload-artifact@v4
+        with:
+          name: Linux-installers
+          path: |
+            dist/*.AppImage
+            dist/*.deb
+          if-no-files-found: error
+
+      - name: Upload Windows installer
+        if: matrix.platform == 'Windows'
+        uses: actions/upload-artifact@v4
+        with:
+          name: Windows-installer
+          path: dist/*.exe
+          if-no-files-found: error
+
+  release:
+    name: Publish installers
+    needs: build
     runs-on: ubuntu-latest
     steps:
-      - name: Remove update metadata and intermediate files
+      - name: Download installers
+        uses: actions/download-artifact@v4
+        with:
+          path: release-assets
+          merge-multiple: true
+
+      - name: Publish GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: release-assets/*
+          fail_on_unmatched_files: true
+          generate_release_notes: true
+
+      - name: Remove obsolete non-installer assets
         uses: actions/github-script@v7
         with:
           github-token: ${{ secrets.github_token }}
