@@ -27,7 +27,7 @@ test("JSON (jrnl) import", () => {
 	expect(parsed).toMatchObject(referenceDataTxt);
 });
 
-test("JSON (Mini Diary) import", () => {
+test("JSON (Dayleaf) import", () => {
 	const miniDiaryJsonStr = fs.readFileSync(PATH_JSON_MINI_DIARY, ENCODING);
 	const parsed = parseMiniDiaryJson(miniDiaryJsonStr);
 	expect(parsed).toMatchObject(referenceDataMd);

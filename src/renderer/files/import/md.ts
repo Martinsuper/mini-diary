@@ -28,7 +28,7 @@ export function parseSingleEntryMd(markdown: string, indexDate: string): Entries
 
 export function parseMiniDiaryMd(markdown: string): Entries {
 	const matches = Array.from(markdown.matchAll(ENTRY_HEADING));
-	if (matches.length === 0) throw Error("No Mini Diary date headings were found");
+	if (matches.length === 0) throw Error("No Dayleaf date headings were found");
 	const entries: Entries = {};
 	const now = createDate().toString();
 

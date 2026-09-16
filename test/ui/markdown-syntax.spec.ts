@@ -27,7 +27,7 @@ const markdown = [
 	"- [ ] open task",
 	"- [x] finished task",
 	"",
-	"[Mini Diary](https://minidiary.app)",
+	"[Dayleaf](https://github.com/Martinsuper/Dayleaf)",
 	"",
 	"---",
 	"",
@@ -89,7 +89,9 @@ test("renders every supported Markdown syntax", async (): Promise<void> => {
 	await expect(editor.getByRole("checkbox")).toHaveCount(2);
 	await expect(editor.getByRole("checkbox").nth(0)).not.toBeChecked();
 	await expect(editor.getByRole("checkbox").nth(1)).toBeChecked();
-	await expect(editor.locator('a[href="https://minidiary.app"]')).toHaveText("Mini Diary");
+	await expect(editor.locator('a[href="https://github.com/Martinsuper/Dayleaf"]')).toHaveText(
+		"Dayleaf",
+	);
 	await expect(editor.locator("hr")).toHaveCount(1);
 	await expect(editor.locator(".lexical-code-block")).toContainText("const answer = 42;");
 

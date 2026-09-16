@@ -13,7 +13,7 @@ beforeEach(async (): Promise<void> => {
 	directory = await mkdtemp(path.join(os.tmpdir(), "mini-diary-service-"));
 	jest.spyOn(app, "getPath").mockReturnValue(directory);
 	jest.spyOn(app, "getVersion").mockReturnValue("0.0.0-test");
-	Object.defineProperty(app, "name", { configurable: true, value: "Mini Diary" });
+	Object.defineProperty(app, "name", { configurable: true, value: "Dayleaf" });
 });
 
 afterEach(async (): Promise<void> => {

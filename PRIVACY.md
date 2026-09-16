@@ -2,11 +2,11 @@
 
 ## Desktop Application
 
-The Mini Diary desktop application does not collect any personal information.
+The Dayleaf desktop application does not collect any personal information.
 
 ## Website
 
-The [minidiary.app](https://minidiary.app) website uses [Fathom Analytics](https://usefathom.com).
+The Dayleaf project website may use privacy-focused analytics to understand aggregate visits.
 
 Fathom Analytics is website analytics software that tracks and reports aggregate website traffic without compromising on your privacy. Fathom only reports on aggregates, so no information specific to the website visitor is ever tracked or recorded.
 

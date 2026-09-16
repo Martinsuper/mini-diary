@@ -1,16 +1,16 @@
 {
-	"name": "mini-diary",
-	"productName": "Mini Diary",
-	"version": "3.4.0",
-	"description": "Simple and secure journal app",
+	"name": "dayleaf",
+	"productName": "日笺",
+	"version": "3.4.1",
+	"description": "Dayleaf — a simple and secure personal journal",
 	"main": "./bundle/main.js",
 	"author": {
 		"name": "Samuel Meuli",
 		"email": "me@samuelmeuli.com",
 		"url": "https://samuelmeuli.com"
 	},
-	"repository": "github:Martinsuper/mini-diary",
-	"homepage": "https://minidiary.app",
+	"repository": "github:Martinsuper/Dayleaf",
+	"homepage": "https://github.com/Martinsuper/Dayleaf",
 	"license": "MIT",
 	"private": true,
 	"scripts": {
@@ -227,10 +227,12 @@
 	"prettier": "@samuelmeuli/prettier-config",
 	"build": {
 		"appId": "com.samuelmeuli.minidiary",
+		"artifactName": "Dayleaf-${version}-${os}-${arch}.${ext}",
+		"executableName": "Dayleaf",
 		"publish": {
 			"provider": "github",
 			"owner": "Martinsuper",
-			"repo": "mini-diary"
+			"repo": "Dayleaf"
 		},
 		"files": [
 			"!**/*",

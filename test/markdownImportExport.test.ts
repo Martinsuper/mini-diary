@@ -11,7 +11,7 @@ const entries = {
 	},
 };
 
-test("exports and imports Mini Diary Markdown", async () => {
+test("exports and imports Dayleaf Markdown", async () => {
 	const markdown = await convertToMd(entries);
 	expect(markdown).toContain("## 2025-09-12 ·");
 	expect(markdown).toContain("# A \\*safe\\* title");

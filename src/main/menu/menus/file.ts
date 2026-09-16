@@ -47,14 +47,14 @@ export default function getFileMenu(): MenuItemConstructorOptions {
 						},
 					},
 					{
-						label: `${translate("import-from-format", { format: "JSON (Mini Diary)" })}…`,
+						label: `${translate("import-from-format", { format: "JSON (Dayleaf)" })}…`,
 						id: "importJsonMiniDiary",
 						click(): void {
 							importJsonMiniDiary();
 						},
 					},
 					{
-						label: `${translate("import-from-format", { format: "Markdown (Mini Diary)" })}…`,
+						label: `${translate("import-from-format", { format: "Markdown (Dayleaf)" })}…`,
 						id: "importMdMiniDiary",
 						click(): void {
 							importMdMiniDiary();
@@ -81,7 +81,7 @@ export default function getFileMenu(): MenuItemConstructorOptions {
 				id: "export",
 				submenu: [
 					{
-						label: `${translate("export-to-format", { format: "JSON (Mini Diary)" })}…`,
+						label: `${translate("export-to-format", { format: "JSON (Dayleaf)" })}…`,
 						id: "exportJsonMiniDiary",
 						click(): void {
 							exportJsonMiniDiary();

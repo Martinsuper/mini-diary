@@ -7,6 +7,7 @@ import { app } from "electron";
 import { DiaryEntryUpdate, DiaryPayload } from "../../shared/ipc";
 import { Entries, Metadata, MiniDiaryJson } from "../../renderer/types";
 
+// Keep the legacy filename and format identifier so existing diaries remain compatible.
 const FILE_NAME = "mini-diary.txt";
 const FORMAT = "mini-diary/v2";
 

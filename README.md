@@ -1,15 +1,15 @@
 <div align="center">
   <img src="website/img/app-icon.png" height="120">
-  <h1>Mini Diary</h1>
+  <h1>日笺 · Dayleaf</h1>
   <strong>Simple and secure journal app</strong>
   <img src="website/img/screenshot-1.png" width="100%" alt="Screenshot">
 </div>
 
-**Mini Diary is no longer maintained. Please use a different journal app instead.**
+## Dayleaf
 
-## Website
+日笺（Dayleaf）是一款简洁、安全、专注于本地记录的个人日记应用。
 
-Features and FAQs can be found on the website: [**minidiary.app**](https://minidiary.app)
+Project home: [**Dayleaf on GitHub**](https://github.com/Martinsuper/Dayleaf)
 
 ## Development
 
@@ -18,7 +18,7 @@ The application is built with Electron and React. To run or build the app yourse
 ### Running the app
 
 1. Clone this repository: `git clone REPO_URL`
-2. Navigate into the project directory: `cd mini-diary`
+2. Navigate into the project directory: `cd Dayleaf`
 3. Install the dependencies: `yarn`
 4. Run the app: `yarn start`
 

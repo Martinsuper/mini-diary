@@ -24,12 +24,12 @@ const fields = {
 		),
 	},
 	jsonMiniDiary: {
-		title: translate("import-from-format", { format: "JSON (Mini Diary)" }),
+		title: translate("import-from-format", { format: "JSON (Dayleaf)" }),
 		extension: "json" as const,
 		instructions: <p>{translate("import-instructions-mini-diary", { appName })}</p>,
 	},
 	mdMiniDiary: {
-		title: translate("import-from-format", { format: "Markdown (Mini Diary)" }),
+		title: translate("import-from-format", { format: "Markdown (Dayleaf)" }),
 		extension: "md" as const,
 		instructions: <p>{translations["import-instructions-markdown"]}</p>,
 	},

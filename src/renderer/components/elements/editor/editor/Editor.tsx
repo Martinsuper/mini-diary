@@ -149,7 +149,7 @@ export default function Editor(props: Props): ReactElement {
 			editorState: (): void => {
 				$convertFromMarkdownString(entryText, MARKDOWN_TRANSFORMERS);
 			},
-			namespace: "mini-diary",
+			namespace: "dayleaf",
 			nodes: MARKDOWN_NODES,
 			onError: (error: Error): void => {
 				throw error;

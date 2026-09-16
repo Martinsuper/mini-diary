@@ -85,7 +85,7 @@ const translationsZhTw: Partial<Translations> = {
 	"heading-3": "三級標題",
 	"horizontal-rule": "分隔線",
 	"import-instructions-markdown":
-		"選擇由 Mini Diary 匯出的 Markdown 檔案，將依日期標題還原多篇日記。",
+		"選擇由 Dayleaf 匯出的 Markdown 檔案，將依日期標題還原多篇日記。",
 	"import-instructions-markdown-single":
 		"選擇要匯入目前日期的 Markdown 檔案。檔案開頭的一級標題將作為日記標題。",
 	"inline-code": "行內程式碼",

@@ -4,7 +4,7 @@ import { escapeMarkdownText } from "../../utils/markdown";
 import sortEntries from "./sortEntries";
 
 export function convertToMd(entries: Entries): Promise<string> {
-	const content = ["# Mini Diary\n\n"];
+	const content = ["# Dayleaf\n\n"];
 
 	sortEntries(entries).forEach(([indexDate, entry], index): void => {
 		const { text, title } = entry;

@@ -3,7 +3,7 @@ import { createDate } from "../../utils/dateFormat";
 import sortEntries from "./sortEntries";
 
 /**
- * Convert entries to a Mini Diary JSON string
+ * Convert entries to a Dayleaf JSON string
  */
 export function convertToMiniDiaryJson(entries: Entries): Promise<string> {
 	return new Promise((resolve) => {
@@ -18,7 +18,7 @@ export function convertToMiniDiaryJson(entries: Entries): Promise<string> {
 		// Add metadata
 		const content: MiniDiaryJson = {
 			metadata: {
-				application: "Mini Diary",
+				application: "Dayleaf",
 				version: "v0.0.0",
 				dateUpdated: createDate().toString(),
 			},

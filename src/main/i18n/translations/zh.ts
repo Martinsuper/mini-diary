@@ -93,7 +93,7 @@ const translationsZh: Partial<Translations> = {
 	"heading-3": "三级标题",
 	"horizontal-rule": "分隔线",
 	"import-instructions-markdown":
-		"选择由 Mini Diary 导出的 Markdown 文件，将按日期标题恢复多篇日记。",
+		"选择由 Dayleaf 导出的 Markdown 文件，将按日期标题恢复多篇日记。",
 	"import-instructions-markdown-single":
 		"选择要导入当前日期的 Markdown 文件。文件开头的一级标题将作为日记标题。",
 	"inline-code": "行内代码",

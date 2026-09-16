@@ -77,7 +77,7 @@ export const runImport =
 				throw Error(`Unrecognized importFormat "${importFormat}"`);
 			}
 
-			// Parse file and make it compatible with Mini Diary
+			// Parse file and make it compatible with Dayleaf
 			const json = parseFunc(fileContent);
 			await dispatch(mergeUpdateFile(json));
 			dispatch(setImportSuccess());

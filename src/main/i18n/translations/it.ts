@@ -78,7 +78,7 @@ const translationsIt: Partial<Translations> = {
 	"heading-3": "Heading 3",
 	"horizontal-rule": "Horizontal rule",
 	"import-instructions-markdown":
-		"Select a Markdown file exported by Mini Diary. Entries are matched using their date headings.",
+		"Select a Markdown file exported by Dayleaf. Entries are matched using their date headings.",
 	"import-instructions-markdown-single":
 		"Select a Markdown file to import into the currently selected day. A leading level-one heading is used as the title.",
 	"inline-code": "Inline code",

@@ -39,7 +39,7 @@ describe("Markdown editor conversion", () => {
 		"- first\n- second",
 		"1. one\n2. two",
 		"- [ ] open task\n- [x] finished task",
-		"[Mini Diary](https://minidiary.app)",
+		"[Dayleaf](https://github.com/Martinsuper/Dayleaf)",
 		"Before\n\n---\n\nAfter",
 		"中文 **粗体** 与 *斜体*。",
 	])("round trips %s", (markdown) => {

@@ -58,7 +58,7 @@ export default function getMenuTemplate(): MenuItemConstructorOptions[] {
 			},
 		];
 	} else {
-		// Add preferences under "File" (will be added under "Mini Diary" for macOS)
+		// Add preferences under "File" (will be added under "Dayleaf" for macOS)
 		(fileMenu.submenu as MenuItemConstructorOptions[]).push(preferencesItem);
 	}
 

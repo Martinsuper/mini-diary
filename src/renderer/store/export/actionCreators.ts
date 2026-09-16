@@ -42,7 +42,7 @@ const exportToFile =
 		try {
 			const content = await converterFunc(getState().file.entries);
 			await window.miniDiary.dialogs.exportFile(
-				`mini-diary-export.${fileExtensions[exportFormat]}`,
+				`dayleaf-export.${fileExtensions[exportFormat]}`,
 				translations.export,
 				content,
 			);
@@ -72,7 +72,7 @@ export const exportToPdf =
 		try {
 			const markdown = await convertToMd(getState().file.entries);
 			await window.miniDiary.dialogs.exportPdf(
-				`mini-diary-export.${fileExtensions.pdf}`,
+				`dayleaf-export.${fileExtensions.pdf}`,
 				translations.export,
 				markdown,
 			);

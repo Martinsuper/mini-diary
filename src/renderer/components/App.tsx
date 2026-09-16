@@ -123,8 +123,8 @@ export default class App extends Component<Props, State> {
 							{showDiaryChrome && (
 								<header className="app-titlebar" onDoubleClick={toggleWindowSize}>
 									<div className="app-brand">
-										<span>Mini Diary</span>
-										<small>{translations["personal-journal"]}</small>
+										<span>日笺</span>
+										<small>Dayleaf</small>
 									</div>
 									<div className="app-titlebar-actions">
 										<button

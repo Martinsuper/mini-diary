@@ -91,7 +91,7 @@ export function parseJrnlJson(jsonStr: string): Entries {
 }
 
 /**
- * Parse the Mini Diary JSON file and format it as an Entries object
+ * Parse the Dayleaf JSON file and format it as an Entries object
  */
 export function parseMiniDiaryJson(jsonStr: string): Entries {
 	const parsedJson: MiniDiaryJson = JSON.parse(jsonStr);

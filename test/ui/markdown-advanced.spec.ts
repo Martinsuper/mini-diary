@@ -65,7 +65,7 @@ test("shows help, copy actions, and the Markdown preference", async (): Promise<
 	await expect(page.locator("#enable-markdown-shortcuts")).not.toBeChecked();
 });
 
-test("imports and exports Mini Diary Markdown", async (): Promise<void> => {
+test("imports and exports Dayleaf Markdown", async (): Promise<void> => {
 	await page.keyboard.press("Escape");
 	await page.locator(".markdown-source").fill("");
 	await page.locator(".markdown-source").blur();
@@ -75,7 +75,7 @@ test("imports and exports Mini Diary Markdown", async (): Promise<void> => {
 	await import("fs/promises").then(({ writeFile }) =>
 		writeFile(
 			importFile,
-			"# Mini Diary\n\n## 2026-09-12 · Saturday\n\n# Imported\n\nA **Markdown** import.\n",
+			"# Dayleaf\n\n## 2026-09-12 · Saturday\n\n# Imported\n\nA **Markdown** import.\n",
 		),
 	);
 	await app.evaluate(({ dialog }, filePath) => {

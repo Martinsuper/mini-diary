@@ -1,6 +1,6 @@
-const API_URL = "https://api.github.com/repos/samuelmeuli/mini-diary/releases/latest";
-const APP_STORE_URL = "https://itunes.apple.com/app/mini-diary/id1450296884";
-const SNAPCRAFT_URL = "https://snapcraft.io/mini-diary";
+const API_URL = "https://api.github.com/repos/Martinsuper/Dayleaf/releases/latest";
+const APP_STORE_URL = "https://github.com/Martinsuper/Dayleaf/releases/latest";
+const SNAPCRAFT_URL = "https://github.com/Martinsuper/Dayleaf/releases/latest";
 
 interface Asset {
 	browser_download_url: string;
