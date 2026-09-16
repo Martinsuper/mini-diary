@@ -4,13 +4,17 @@ import { OverlayType } from "./types";
 export const IPC = {
 	app: {
 		bootstrap: "app:bootstrap",
+		closeReady: "app:close-ready",
+		prepareClose: "app:prepare-close",
 		toggleWindowSize: "app:toggle-window-size",
+		openExternal: "app:open-external",
 	},
 	dialogs: {
 		confirmReset: "dialogs:confirm-reset",
 		exportFile: "dialogs:export-file",
 		exportPdf: "dialogs:export-pdf",
 		importFile: "dialogs:import-file",
+		importImage: "dialogs:import-image",
 		selectDirectory: "dialogs:select-directory",
 		showError: "dialogs:show-error",
 	},
@@ -43,8 +47,11 @@ export type MenuEvent =
 	| "importJsonDayOne"
 	| "importJsonJrnl"
 	| "importJsonMiniDiary"
+	| "importMdMiniDiary"
+	| "importMdSingle"
 	| "importTxtDayOne"
-	| "lock";
+	| "lock"
+	| "openOverlay";
 
 export interface DiaryPayload {
 	entries: Entries;
@@ -58,10 +65,12 @@ export interface DiaryEntryUpdate {
 
 export interface PreferenceValues {
 	allowFutureEntries: boolean;
+	enableMarkdownShortcuts: boolean;
 	enableSpellcheck: boolean;
 	filePath: string;
 	firstDayOfWeek: number | null;
 	hideTitles: boolean;
+	markdownEditorMode: "rich" | "source";
 	theme: "auto" | "dark" | "light";
 }
 
@@ -75,7 +84,9 @@ export interface BootstrapData {
 export interface MiniDiaryApi {
 	app: {
 		bootstrap: () => Promise<BootstrapData>;
+		closeReady: (error?: string) => void;
 		toggleWindowSize: () => Promise<void>;
+		openExternal: (url: string) => Promise<boolean>;
 	};
 	dialogs: {
 		confirmReset: (
@@ -86,7 +97,8 @@ export interface MiniDiaryApi {
 		) => Promise<boolean>;
 		exportFile: (defaultName: string, buttonLabel: string, content: string) => Promise<boolean>;
 		exportPdf: (defaultName: string, buttonLabel: string, markdown: string) => Promise<boolean>;
-		importFile: (extension: "json" | "txt") => Promise<string | null>;
+		importFile: (extension: "json" | "md" | "txt") => Promise<string | null>;
+		importImage: () => Promise<{ dataUrl: string; name: string } | null>;
 		selectDirectory: (buttonLabel: string) => Promise<string | null>;
 		showError: (title: string, message: string) => Promise<void>;
 	};
@@ -104,6 +116,7 @@ export interface MiniDiaryApi {
 		updatePassword: (password: string, entries: Entries) => Promise<DiaryPayload>;
 	};
 	events: {
+		onPrepareClose: (listener: () => void) => () => void;
 		onMenu: (listener: (event: MenuEvent, overlay?: OverlayType) => void) => () => void;
 		onThemeChange: (listener: (theme: "light" | "dark") => void) => () => void;
 	};

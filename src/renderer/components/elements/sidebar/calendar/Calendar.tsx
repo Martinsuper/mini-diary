@@ -2,6 +2,7 @@ import { Moment } from "moment-timezone";
 import React, { PureComponent, ReactNode } from "react";
 import { DayPicker } from "react-day-picker";
 
+import { calendarLocale } from "../../../../utils/i18n";
 import { Entries, Weekday } from "../../../../types";
 import { createDate, parseDate } from "../../../../utils/dateFormat";
 import CalendarNavContainer from "../calendar-nav/CalendarNavContainer";
@@ -61,6 +62,7 @@ export default class Calendar extends PureComponent<Props, {}> {
 			<>
 				<CalendarNavContainer />
 				<DayPicker
+					locale={calendarLocale}
 					classNames={classNames}
 					components={{ MonthCaption: () => <></> }}
 					disabled={allowFutureEntries ? undefined : { after: createDate().toDate() }}

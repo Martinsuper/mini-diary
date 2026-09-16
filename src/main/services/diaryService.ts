@@ -9,7 +9,6 @@ import { Entries, Metadata, MiniDiaryJson } from "../../renderer/types";
 
 const FILE_NAME = "mini-diary.txt";
 const FORMAT = "mini-diary/v2";
-const SAVE_DELAY = 1000;
 
 interface EncryptedDiary {
 	ciphertext: string;
@@ -60,8 +59,6 @@ function isDiaryPayload(value: unknown): value is MiniDiaryJson {
 
 export default class DiaryService {
 	private directory: string;
-
-	private saveTimer: NodeJS.Timeout | null = null;
 
 	private session: Session | null = null;
 
@@ -143,11 +140,12 @@ export default class DiaryService {
 		return payload;
 	}
 
-	save(update: DiaryEntryUpdate): void {
+	async save(update: DiaryEntryUpdate): Promise<void> {
 		const session = this.requireSession();
 		if (update.entry) session.entries[update.indexDate] = update.entry;
 		else delete session.entries[update.indexDate];
-		this.scheduleWrite();
+		this.queueWrite();
+		await this.writePromise;
 	}
 
 	async replaceEntries(entries: Entries): Promise<void> {
@@ -167,11 +165,6 @@ export default class DiaryService {
 	}
 
 	async flush(): Promise<void> {
-		if (this.saveTimer) {
-			clearTimeout(this.saveTimer);
-			this.saveTimer = null;
-			this.queueWrite();
-		}
 		await this.writePromise;
 	}
 
@@ -222,14 +215,6 @@ export default class DiaryService {
 			.finally((): void => {
 				this.writing = false;
 			});
-	}
-
-	private scheduleWrite(): void {
-		if (this.saveTimer) clearTimeout(this.saveTimer);
-		this.saveTimer = setTimeout((): void => {
-			this.saveTimer = null;
-			this.queueWrite();
-		}, SAVE_DELAY);
 	}
 
 	private async write(): Promise<void> {

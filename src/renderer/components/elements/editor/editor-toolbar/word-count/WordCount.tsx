@@ -4,6 +4,7 @@ import countWords from "word-count";
 
 import { Entries } from "../../../../../types";
 import { toIndexDate } from "../../../../../utils/dateFormat";
+import { lang, translate } from "../../../../../utils/i18n";
 
 export interface StateProps {
 	dateSelected: Moment;
@@ -28,5 +29,9 @@ export default function WordCount(props: Props): ReactElement {
 		wordCount = countWords(`${entry.title ?? ""}\n${entry.text ?? ""}`);
 	}
 
-	return <p className="word-count">{`${wordCount} words`}</p>;
+	return (
+		<p className="word-count">
+			{translate("word-count", { count: wordCount.toLocaleString(lang) })}
+		</p>
+	);
 }

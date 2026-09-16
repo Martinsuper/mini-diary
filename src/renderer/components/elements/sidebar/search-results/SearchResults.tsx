@@ -6,7 +6,20 @@ import { fromIndexDate, toDateString } from "../../../../utils/dateFormat";
 import { translations } from "../../../../utils/i18n";
 import Banner from "../../general/banner/Banner";
 
+function highlight(text: string, query: string): ReactNode {
+	const position = text.toLocaleLowerCase().indexOf(query.trim().toLocaleLowerCase());
+	if (!query.trim() || position < 0) return text;
+	return (
+		<>
+			{text.slice(0, position)}
+			<mark>{text.slice(position, position + query.trim().length)}</mark>
+			{text.slice(position + query.trim().length)}
+		</>
+	);
+}
+
 export interface StateProps {
+	searchKey: string;
 	dateSelected: Moment;
 	entries: Entries;
 	searchResults: string[];
@@ -26,24 +39,29 @@ export default class SearchResults extends PureComponent<Props, {}> {
 	}
 
 	generateSearchResults(): ReactNode[] {
-		const { dateSelected, entries, searchResults, setDateSelected } = this.props;
+		const { dateSelected, entries, searchResults, setDateSelected, searchKey } = this.props;
 
 		return searchResults.reduce((results: ReactNode[], searchResult): ReactNode[] => {
 			if (searchResult in entries) {
 				const date = fromIndexDate(searchResult);
-				const { title } = entries[searchResult];
+				const { title, text } = entries[searchResult];
+				const position = text.toLocaleLowerCase().indexOf(searchKey.trim().toLocaleLowerCase());
+				const start = Math.max(0, position - 25);
+				const summary = `${start ? "…" : ""}${text.slice(start, start + 100).replace(/\s+/g, " ")}`;
 				const isSelected = date.isSame(dateSelected, "day");
 				results.push(
 					<li key={searchResult} className="search-result">
 						<button
 							type="button"
 							className={`button ${isSelected ? "button-main" : ""}`}
+							aria-current={isSelected ? "date" : undefined}
 							onClick={(): void => setDateSelected(date)}
 						>
 							<p className="search-date text-faded">{toDateString(date)}</p>
 							<p className={`search-title ${!title ? "text-faded" : ""}`}>
-								{title || translations["no-title"]}
+								{highlight(title || translations["no-title"], searchKey)}
 							</p>
+							<p className="search-summary">{highlight(summary, searchKey)}</p>
 						</button>
 					</li>,
 				);

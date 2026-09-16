@@ -9,21 +9,18 @@ import { initializeBootstrap } from "./bootstrap";
 
 async function start(): Promise<void> {
 	initializeBootstrap(await window.miniDiary.app.bootstrap());
-	const [
-		{ default: AppContainer },
-		{ default: initIpcListeners },
-		{ default: store },
-		{ initI18n },
-	] = await Promise.all([
-		import("./components/AppContainer"),
-		import("./electron/ipcRenderer/listeners"),
-		import("./store/store"),
-		import("./utils/i18n"),
-	]);
+	// Set the locale before reducers create their initial Moment instances.
+	const { initI18n } = await import("./utils/i18n");
+	initI18n();
+	const [{ default: AppContainer }, { default: initIpcListeners }, { default: store }] =
+		await Promise.all([
+			import("./components/AppContainer"),
+			import("./electron/ipcRenderer/listeners"),
+			import("./store/store"),
+		]);
 
 	initLogger();
 	initIpcListeners();
-	initI18n();
 
 	const root = document.createElement("div");
 	root.id = "root";

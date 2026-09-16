@@ -55,6 +55,14 @@ export const importJsonMiniDiary = (): void => {
 	getWindow().webContents.send("importJsonMiniDiary");
 };
 
+export const importMdMiniDiary = (): void => {
+	getWindow().webContents.send("importMdMiniDiary");
+};
+
+export const importMdSingle = (): void => {
+	getWindow().webContents.send("importMdSingle");
+};
+
 export const importTxtDayOne = (): void => {
 	getWindow().webContents.send("importTxtDayOne");
 };

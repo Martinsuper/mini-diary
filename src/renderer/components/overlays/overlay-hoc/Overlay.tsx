@@ -1,3 +1,4 @@
+import trapDialogFocus from "../../../utils/dialogFocus";
 import ClearIcon from "feather-icons/dist/icons/x.svg";
 import React, { PureComponent, ReactNode } from "react";
 
@@ -18,6 +19,8 @@ type Props = DispatchProps & CustomProps;
 export default class Overlay extends PureComponent<Props, {}> {
 	overlayElement: HTMLDivElement;
 
+	releaseFocus: (() => void) | undefined;
+
 	constructor(props: Props) {
 		super(props);
 
@@ -28,11 +31,15 @@ export default class Overlay extends PureComponent<Props, {}> {
 	}
 
 	componentDidMount(): void {
+		const heading = this.overlayElement.querySelector("h1");
+		if (heading) heading.id = "overlay-heading";
+		this.releaseFocus = trapDialogFocus(this.overlayElement, this.onClose);
 		document.addEventListener("click", this.onClick);
 		window.addEventListener("keydown", this.onKeyDown);
 	}
 
 	componentWillUnmount(): void {
+		this.releaseFocus?.();
 		document.removeEventListener("click", this.onClick);
 		window.removeEventListener("keydown", this.onKeyDown);
 	}
@@ -81,6 +88,10 @@ export default class Overlay extends PureComponent<Props, {}> {
 		return (
 			<div className="overlay-outer">
 				<div
+					role="dialog"
+					aria-modal="true"
+					aria-labelledby="overlay-heading"
+					tabIndex={-1}
 					className={`overlay-inner ${className || ""}`}
 					ref={(overlayElement: HTMLDivElement): void => {
 						this.overlayElement = overlayElement;
@@ -88,6 +99,7 @@ export default class Overlay extends PureComponent<Props, {}> {
 				>
 					<button
 						type="button"
+						aria-label={translations.close}
 						className="button button-invisible overlay-close-button"
 						onClick={this.onClose}
 					>

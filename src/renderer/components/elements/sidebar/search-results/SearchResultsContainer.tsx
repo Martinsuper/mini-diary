@@ -10,6 +10,7 @@ const mapStateToProps = (state: RootState): StateProps => ({
 	dateSelected: state.diary.dateSelected,
 	entries: state.file.entries,
 	searchResults: state.diary.searchResults,
+	searchKey: state.diary.searchKey,
 });
 
 const mapDispatchToProps = (dispatch: ThunkDispatchT): DispatchProps => ({

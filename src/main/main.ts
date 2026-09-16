@@ -1,4 +1,5 @@
-import { app, BrowserWindow } from "electron";
+import { app, BrowserWindow, dialog, ipcMain } from "electron";
+import { IPC } from "../shared/ipc";
 import path from "path";
 
 import contextMenu from "electron-context-menu";
@@ -8,7 +9,6 @@ import DiaryService from "./services/diaryService";
 import { initI18n } from "./i18n/i18n";
 import initIpcListeners from "./ipcMain/listeners";
 import { buildMenu } from "./menu/menu";
-import updateApp from "./updater";
 import { getWindow, setWindow } from "./window";
 
 if (process.env.ELECTRON_USER_DATA_DIR) {
@@ -42,6 +42,29 @@ async function createWindow(): Promise<BrowserWindow> {
 			spellcheck: true,
 		},
 	});
+	let closeApproved = false;
+	let closePending = false;
+	const onCloseReady = async (event: Electron.IpcMainEvent, error?: string): Promise<void> => {
+		if (event.sender !== win.webContents || !closePending) return;
+		try {
+			if (error) throw Error(error);
+			await diaryService.flush();
+			closeApproved = true;
+			win.close();
+		} catch (reason) {
+			closePending = false;
+			dialog.showErrorBox("Save failed — diary remains open", reason.message);
+		}
+	};
+	ipcMain.on(IPC.app.closeReady, onCloseReady);
+	win.on("close", (event) => {
+		if (closeApproved) return;
+		event.preventDefault();
+		if (closePending) return;
+		closePending = true;
+		win.webContents.send(IPC.app.prepareClose);
+	});
+	win.on("closed", () => ipcMain.removeListener(IPC.app.closeReady, onCloseReady));
 	win.on("ready-to-show", (): void => {
 		win.show();
 	});
@@ -60,11 +83,6 @@ async function createWindow(): Promise<BrowserWindow> {
 // Quit app when all of its windows have been closed
 app.on("window-all-closed", (): void => {
 	app.quit();
-});
-
-app.on("before-quit", (event) => {
-	event.preventDefault();
-	void diaryService.flush().finally(() => app.exit());
 });
 
 // On app activation (e.g. when clicking dock icon), re-create BrowserWindow if necessary
@@ -86,5 +104,7 @@ app.on("activate", async (): Promise<void> => {
 	// Create and show BrowserWindow
 	setWindow(await createWindow());
 
-	updateApp();
+	if (!process.env.ELECTRON_USER_DATA_DIR) {
+		void import("./updater").then(({ default: updateApp }) => updateApp());
+	}
 })();

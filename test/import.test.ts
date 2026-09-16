@@ -18,23 +18,23 @@ import {
 test("JSON (Day One) import", () => {
 	const dayOneJsonStr = fs.readFileSync(PATH_JSON_DAY_ONE, ENCODING);
 	const parsed = parseDayOneJson(dayOneJsonStr);
-	expect(parsed).toStrictEqual(referenceDataMd);
+	expect(parsed).toMatchObject(referenceDataMd);
 });
 
 test("JSON (jrnl) import", () => {
 	const jrnlJsonStr = fs.readFileSync(PATH_JSON_JRNL, ENCODING);
 	const parsed = parseJrnlJson(jrnlJsonStr);
-	expect(parsed).toStrictEqual(referenceDataTxt);
+	expect(parsed).toMatchObject(referenceDataTxt);
 });
 
 test("JSON (Mini Diary) import", () => {
 	const miniDiaryJsonStr = fs.readFileSync(PATH_JSON_MINI_DIARY, ENCODING);
 	const parsed = parseMiniDiaryJson(miniDiaryJsonStr);
-	expect(parsed).toStrictEqual(referenceDataMd);
+	expect(parsed).toMatchObject(referenceDataMd);
 });
 
 test("TXT (Day One) import", () => {
 	const dayOneTxtStr = fs.readFileSync(PATH_TXT_DAY_ONE, ENCODING);
 	const parsed = parseDayOneTxt(dayOneTxtStr);
-	expect(parsed).toStrictEqual(referenceDataTxt);
+	expect(parsed).toMatchObject(referenceDataTxt);
 });

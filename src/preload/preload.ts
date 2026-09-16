@@ -1,6 +1,7 @@
 import { contextBridge, ipcRenderer } from "electron";
 
 import { IPC, MenuEvent, MiniDiaryApi } from "../shared/ipc";
+import { OverlayType } from "../shared/types";
 
 function subscribe<T>(channel: string, listener: (value: T) => void): () => void {
 	const wrapped = (_: Electron.IpcRendererEvent, value: T): void => listener(value);
@@ -13,7 +14,9 @@ function subscribe<T>(channel: string, listener: (value: T) => void): () => void
 const api: MiniDiaryApi = {
 	app: {
 		bootstrap: () => ipcRenderer.invoke(IPC.app.bootstrap),
+		closeReady: (error) => ipcRenderer.send(IPC.app.closeReady, error),
 		toggleWindowSize: (): Promise<void> => ipcRenderer.invoke(IPC.app.toggleWindowSize),
+		openExternal: (url: string): Promise<boolean> => ipcRenderer.invoke(IPC.app.openExternal, url),
 	},
 	dialogs: {
 		confirmReset: (title, message, confirm, cancel) =>
@@ -23,6 +26,7 @@ const api: MiniDiaryApi = {
 		exportPdf: (defaultName, buttonLabel, markdown) =>
 			ipcRenderer.invoke(IPC.dialogs.exportPdf, defaultName, buttonLabel, markdown),
 		importFile: (extension) => ipcRenderer.invoke(IPC.dialogs.importFile, extension),
+		importImage: () => ipcRenderer.invoke(IPC.dialogs.importImage),
 		selectDirectory: (buttonLabel) => ipcRenderer.invoke(IPC.dialogs.selectDirectory, buttonLabel),
 		showError: (title, message) => ipcRenderer.invoke(IPC.dialogs.showError, title, message),
 	},
@@ -41,6 +45,7 @@ const api: MiniDiaryApi = {
 			ipcRenderer.invoke(IPC.diary.updatePassword, password, entries),
 	},
 	events: {
+		onPrepareClose: (listener) => subscribe(IPC.app.prepareClose, listener),
 		onMenu: (listener) => {
 			const channels: MenuEvent[] = [
 				"nextDay",
@@ -55,11 +60,14 @@ const api: MiniDiaryApi = {
 				"importJsonDayOne",
 				"importJsonJrnl",
 				"importJsonMiniDiary",
+				"importMdMiniDiary",
+				"importMdSingle",
 				"importTxtDayOne",
 				"lock",
+				"openOverlay",
 			];
 			const subscriptions = channels.map((channel) =>
-				subscribe(channel, (): void => listener(channel)),
+				subscribe<OverlayType | undefined>(channel, (overlay): void => listener(channel, overlay)),
 			);
 			return (): void => subscriptions.forEach((unsubscribe) => unsubscribe());
 		},

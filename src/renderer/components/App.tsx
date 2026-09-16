@@ -35,13 +35,13 @@ export interface StateProps {
 export interface DispatchProps {
 	testFileExists: () => void;
 	updateThemePref: (themePref: ThemePref) => void;
+	openPreferences: () => void;
 }
 
 type Props = StateProps & DispatchProps;
 
 interface State {
 	isLoading: boolean;
-	isThemeMenuOpen: boolean;
 }
 
 export default class App extends Component<Props, State> {
@@ -72,7 +72,7 @@ export default class App extends Component<Props, State> {
 
 	constructor(props: Props) {
 		super(props);
-		this.state = { isLoading: true, isThemeMenuOpen: false };
+		this.state = { isLoading: true };
 	}
 
 	componentDidMount(): void {
@@ -105,19 +105,9 @@ export default class App extends Component<Props, State> {
 		}
 	}
 
-	toggleThemeMenu = (): void => {
-		this.setState((state): State => ({ ...state, isThemeMenuOpen: !state.isThemeMenuOpen }));
-	};
-
-	setThemePref = (themePref: ThemePref): void => {
-		const { updateThemePref } = this.props;
-		updateThemePref(themePref);
-		this.setState({ isThemeMenuOpen: false });
-	};
-
 	render(): ReactNode {
-		const { fileExists, isUnlocked, overlay, theme, themePref } = this.props;
-		const { isLoading, isThemeMenuOpen } = this.state;
+		const { fileExists, isUnlocked, overlay, theme, openPreferences } = this.props;
+		const { isLoading } = this.state;
 		const showDiaryChrome = !isLoading && fileExists && isUnlocked;
 		let page;
 		if (isLoading) page = <p>{`${translations.loading}…`}</p>;
@@ -134,39 +124,18 @@ export default class App extends Component<Props, State> {
 								<header className="app-titlebar" onDoubleClick={toggleWindowSize}>
 									<div className="app-brand">
 										<span>Mini Diary</span>
-										<small>Personal journal</small>
+										<small>{translations["personal-journal"]}</small>
 									</div>
 									<div className="app-titlebar-actions">
 										<button
 											type="button"
 											className="app-icon-button"
-											aria-expanded={isThemeMenuOpen}
-											aria-label="Appearance settings"
-											onClick={this.toggleThemeMenu}
+											aria-label={translations.preferences}
+											title={translations.preferences}
+											onClick={openPreferences}
 										>
 											<SettingsIcon {...iconProps} />
 										</button>
-										{isThemeMenuOpen && (
-											<div className="theme-menu" role="dialog" aria-label="Appearance settings">
-												<p className="theme-menu-title">Appearance</p>
-												{(["auto", "light", "dark"] as ThemePref[]).map(
-													(option): ReactNode => (
-														<button
-															key={option}
-															type="button"
-															className={`theme-menu-option ${
-																themePref === option ? "is-active" : ""
-															}`}
-															onClick={(): void => this.setThemePref(option)}
-														>
-															{option === "auto"
-																? "System"
-																: option.charAt(0).toUpperCase() + option.slice(1)}
-														</button>
-													),
-												)}
-											</div>
-										)}
 									</div>
 								</header>
 							)}

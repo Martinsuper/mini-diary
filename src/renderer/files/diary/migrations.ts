@@ -18,6 +18,8 @@ function migrateToMarkdown(data: MiniDiaryJson): MiniDiaryJson {
 		const entryUpdated = {
 			...entry,
 			text: text.replace(/\n/g, "\n\n"),
+			textFormat: "markdown" as const,
+			textFormatVersion: 1,
 		};
 		dataMigrated.entries[indexDate] = entryUpdated;
 	});
@@ -31,8 +33,13 @@ function migrateToMarkdown(data: MiniDiaryJson): MiniDiaryJson {
 export function performMigrations(data: MiniDiaryJson): MiniDiaryJson {
 	const diaryFileVersion = data.metadata.version;
 
-	if (semver.lt(diaryFileVersion, "2.0.0")) {
-		return migrateToMarkdown(data);
-	}
-	return data;
+	if (semver.lt(diaryFileVersion, "2.0.0")) return migrateToMarkdown(data);
+	return {
+		...data,
+		entries: Object.fromEntries(Object.entries(data.entries).map(([date, entry]) => [date, {
+			...entry,
+			textFormat: entry.textFormat || "markdown",
+			textFormatVersion: entry.textFormatVersion || 1,
+		}])),
+	};
 }

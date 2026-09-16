@@ -1,7 +1,7 @@
 import path from "path";
 
 import HtmlWebpackPlugin from "html-webpack-plugin";
-import { Configuration } from "webpack";
+import { Configuration, ContextReplacementPlugin } from "webpack";
 import { merge } from "webpack-merge";
 
 import pkg from "./package.json";
@@ -36,6 +36,7 @@ export default (
 			filename: "renderer.js",
 		},
 		plugins: [
+			new ContextReplacementPlugin(/moment[/\\]locale$/, /en|zh-cn|zh-tw/),
 			new HtmlWebpackPlugin({
 				title: pkg.productName,
 				meta: {

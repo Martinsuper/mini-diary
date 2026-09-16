@@ -1,6 +1,9 @@
+import { subscribeIndex } from "../../utils/searchIndex";
+import { flushPersistence } from "../../utils/persistence";
 import { OverlayType } from "../../../shared/types";
 import { openOverlay, setTheme } from "../../store/app/actionCreators";
 import {
+	search,
 	setDaySelectedPrevious,
 	setDaySelectedNext,
 	setDaySelectedToday,
@@ -20,6 +23,16 @@ import store, { ThunkDispatchT } from "../../store/store";
 const dispatchThunk = store.dispatch as ThunkDispatchT;
 
 export default function initIpcListeners(): void {
+	subscribeIndex(() => {
+		const key = store.getState().diary.searchKey;
+		if (key) dispatchThunk(search(key));
+	});
+	window.miniDiary.events.onPrepareClose(() => {
+		void flushPersistence().then(
+			() => window.miniDiary.app.closeReady(),
+			(error: Error) => window.miniDiary.app.closeReady(error.message),
+		);
+	});
 	window.miniDiary.events.onMenu((event, overlay): void => {
 		switch (event) {
 			case "nextDay":
@@ -59,6 +72,14 @@ export default function initIpcListeners(): void {
 				break;
 			case "importJsonMiniDiary":
 				dispatchThunk(setImportFormat("jsonMiniDiary"));
+				dispatchThunk(openOverlay("import"));
+				break;
+			case "importMdMiniDiary":
+				dispatchThunk(setImportFormat("mdMiniDiary"));
+				dispatchThunk(openOverlay("import"));
+				break;
+			case "importMdSingle":
+				dispatchThunk(setImportFormat("mdSingle"));
 				dispatchThunk(openOverlay("import"));
 				break;
 			case "importTxtDayOne":

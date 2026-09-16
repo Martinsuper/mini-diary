@@ -2,10 +2,14 @@
 
 export type IndexDate = string;
 
+export type TextFormat = "plain" | "markdown";
+
 export interface DiaryEntry {
 	dateUpdated: string;
 	title: string;
 	text: string;
+	textFormat?: TextFormat;
+	textFormatVersion?: number;
 }
 
 export type Entries = Record<IndexDate, DiaryEntry>;
@@ -31,6 +35,8 @@ export type Theme = "light" | "dark";
 
 export type ThemePref = "auto" | Theme;
 
+export type MarkdownEditorMode = "rich" | "source";
+
 // Banner
 
 export type BannerType = "error" | "info";
@@ -41,7 +47,13 @@ export type Status = "idle" | "inProgress" | "error";
 
 // Import and export
 
-export type ImportFormat = "jsonDayOne" | "jsonJrnl" | "jsonMiniDiary" | "txtDayOne";
+export type ImportFormat =
+	| "jsonDayOne"
+	| "jsonJrnl"
+	| "jsonMiniDiary"
+	| "mdMiniDiary"
+	| "mdSingle"
+	| "txtDayOne";
 
 export type ExportFormat = "jsonMiniDiary" | "md" | "pdf" | "txtDayOne";
 

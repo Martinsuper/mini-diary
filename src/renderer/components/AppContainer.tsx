@@ -1,6 +1,6 @@
 import { connect } from "react-redux";
 
-import { updateThemePref } from "../store/app/actionCreators";
+import { openOverlay, updateThemePref } from "../store/app/actionCreators";
 import { testFileExists } from "../store/file/actionCreators";
 import { RootState, ThunkDispatchT } from "../store/store";
 import { ThemePref } from "../types";
@@ -19,6 +19,9 @@ const mapStateToProps = (state: RootState): StateProps => ({
 });
 
 const mapDispatchToProps = (dispatch: ThunkDispatchT): DispatchProps => ({
+	openPreferences: (): void => {
+		dispatch(openOverlay("preferences"));
+	},
 	testFileExists: (): void => dispatch(testFileExists()),
 	updateThemePref: (themePref: ThemePref): void => dispatch(updateThemePref(themePref)),
 });

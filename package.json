@@ -1,7 +1,7 @@
 {
 	"name": "mini-diary",
 	"productName": "Mini Diary",
-	"version": "3.3.1",
+	"version": "3.4.0",
 	"description": "Simple and secure journal app",
 	"main": "./bundle/main.js",
 	"author": {
@@ -46,10 +46,15 @@
 		"format:fix": "yarn format --write"
 	},
 	"dependencies": {
+		"@lexical/code": "0.29.0",
+		"@lexical/link": "0.29.0",
 		"@lexical/list": "0.29.0",
 		"@lexical/markdown": "0.29.0",
 		"@lexical/react": "0.29.0",
 		"@lexical/rich-text": "0.29.0",
+		"@lexical/selection": "0.29.0",
+		"@lexical/table": "0.29.0",
+		"@tabler/icons-react": "^3.35.0",
 		"date-fns": "4.1.0",
 		"electron-context-menu": "2.5.2",
 		"electron-debug": "^3.1.0",
@@ -63,6 +68,7 @@
 		"lodash.debounce": "^4.0.8",
 		"minireset.css": "^0.0.6",
 		"minisearch": "^2.3.1",
+		"moment": "2.30.1",
 		"moment-timezone": "0.5.48",
 		"move-file": "^2.0.0",
 		"react": "18.3.1",

@@ -39,18 +39,22 @@ export default function CalendarNav(props: Props): ReactElement {
 				type="button"
 				className="button button-invisible"
 				disabled={!canClickPrev}
+				aria-label={translations["previous-month"]}
+				title={translations["previous-month"]}
 				onClick={setMonthSelectedPrevious}
 			>
-				<PrevIcon {...iconProps} title={translations["previous-month"]} />
+				<PrevIcon {...iconProps} />
 			</button>
 			<h1 className="month-name">{toMonthYear(dateSelected)}</h1>
 			<button
 				type="button"
 				className="button button-invisible"
 				disabled={!canClickNext}
+				aria-label={translations["next-month"]}
+				title={translations["next-month"]}
 				onClick={setMonthSelectedNext}
 			>
-				<NextIcon {...iconProps} title={translations["next-month"]} />
+				<NextIcon {...iconProps} />
 			</button>
 		</div>
 	);

@@ -9,6 +9,8 @@ import {
 	importJsonDayOne,
 	importJsonJrnl,
 	importJsonMiniDiary,
+	importMdMiniDiary,
+	importMdSingle,
 	importTxtDayOne,
 	lock,
 	openOverlay,
@@ -50,6 +52,16 @@ export default function getFileMenu(): MenuItemConstructorOptions {
 						click(): void {
 							importJsonMiniDiary();
 						},
+					},
+					{
+						label: `${translate("import-from-format", { format: "Markdown (Mini Diary)" })}…`,
+						id: "importMdMiniDiary",
+						click(): void { importMdMiniDiary(); },
+					},
+					{
+						label: `${translate("import-from-format", { format: "Markdown (single entry)" })}…`,
+						id: "importMdSingle",
+						click(): void { importMdSingle(); },
 					},
 					{
 						label: `${translate("import-from-format", { format: "TXT (Day One)" })}…`,

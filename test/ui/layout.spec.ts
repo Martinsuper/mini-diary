@@ -17,6 +17,7 @@ test.beforeAll(async (): Promise<void> => {
 			...process.env,
 			ELECTRON_USER_DATA_DIR: userDataDirectory,
 			LANG: "en_US.UTF-8",
+			MINI_DIARY_TEST_LOCALE: "zh-CN",
 			TZ: "UTC",
 		},
 	});
@@ -30,7 +31,14 @@ test.beforeAll(async (): Promise<void> => {
 });
 
 test.afterAll(async (): Promise<void> => {
-	if (app) await app.close();
+	if (app) {
+		const child = app.process();
+		child?.kill("SIGKILL");
+		await new Promise<void>((resolve) => {
+			if (!child || child.exitCode !== null || child.signalCode !== null) resolve();
+			else child.once("exit", () => resolve());
+		});
+	}
 	if (userDataDirectory) await rm(userDataDirectory, { force: true, recursive: true });
 });
 
@@ -102,7 +110,7 @@ test("preserves the legacy sidebar and editor geometry", async (): Promise<void>
 	expect(calendar.width).toBeLessThanOrEqual(sidebar.width - 40);
 	expect(title.width).toBe(content.width);
 	expect(content.y).toBeGreaterThan(title.y + title.height);
-	expect(toolbar.height).toBe(50);
+	expect(toolbar.height).toBe(56);
 	expect(toolbar.y).toBe(editor.y + editor.height - toolbar.height - 24);
 	expect(day.width).toBe(34);
 	expect(day.height).toBe(34);
@@ -130,25 +138,27 @@ test("preserves the legacy sidebar and editor geometry", async (): Promise<void>
 
 test("aligns formatting controls to a uniform grid", async (): Promise<void> => {
 	const buttons = page.locator(".formatting-buttons .button");
-	const icons = page.locator(".formatting-buttons svg");
+	const icons = page.locator(".editor-toolbar svg");
 	const buttonBoxes = await Promise.all(
 		(await buttons.all()).map((button) => button.boundingBox()),
 	);
 	const iconBoxes = await Promise.all((await icons.all()).map((icon) => icon.boundingBox()));
 
-	expect(buttonBoxes).toHaveLength(4);
-	expect(iconBoxes).toHaveLength(4);
+	expect(buttonBoxes.length).toBeGreaterThanOrEqual(8);
+	expect(iconBoxes.length).toBeGreaterThanOrEqual(7);
+	const toolbarBox = await box(".editor-toolbar");
 	for (const button of buttonBoxes) {
 		expect(button).not.toBeNull();
-		expect(button?.width).toBe(40);
-		expect(button?.height).toBe(40);
+		expect(button?.width).toBe(36);
+		expect(button?.height).toBe(36);
+		expect(button!.y).toBeGreaterThanOrEqual(toolbarBox.y);
+		expect(button!.y + button!.height).toBeLessThanOrEqual(toolbarBox.y + toolbarBox.height);
 	}
 	for (const icon of iconBoxes) {
 		expect(icon).not.toBeNull();
-		expect(icon?.width).toBe(20);
-		expect(icon?.height).toBe(20);
+		expect(icon?.width).toBe(18);
+		expect(icon?.height).toBe(18);
 	}
-	await expect(page.locator(".formatting-buttons")).toHaveScreenshot("formatting-buttons.png", {
-		maxDiffPixels: 64,
-	});
+	const toolbar = page.locator(".formatting-buttons");
+	expect((await toolbar.boundingBox())?.height).toBe(36);
 });

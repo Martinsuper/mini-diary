@@ -28,6 +28,16 @@ const fields = {
 		extension: "json" as const,
 		instructions: <p>{translate("import-instructions-mini-diary", { appName })}</p>,
 	},
+	mdMiniDiary: {
+		title: translate("import-from-format", { format: "Markdown (Mini Diary)" }),
+		extension: "md" as const,
+		instructions: <p>{translations["import-instructions-markdown"]}</p>,
+	},
+	mdSingle: {
+		title: translate("import-from-format", { format: "Markdown (single entry)" }),
+		extension: "md" as const,
+		instructions: <p>{translations["import-instructions-markdown-single"]}</p>,
+	},
 	txtDayOne: {
 		title: translate("import-from-format", { format: "TXT (Day One)" }),
 		extension: "txt" as const,

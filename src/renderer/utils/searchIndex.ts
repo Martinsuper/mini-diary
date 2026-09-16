@@ -24,6 +24,14 @@ let index: MiniSearch | null = null;
 const documents = new Map<IndexDate, IndexDoc>();
 let updates = Promise.resolve();
 
+const indexListeners = new Set<() => void>();
+export function subscribeIndex(listener: () => void): () => void {
+	indexListeners.add(listener);
+	return () => {
+		indexListeners.delete(listener);
+	};
+}
+
 const SPACE_OR_PUNCTUATION = /[^\p{L}\p{N}@#]+/u;
 
 async function createIndexDoc(indexDate: string, entry: DiaryEntry): Promise<IndexDoc> {
@@ -43,7 +51,12 @@ function yieldToBrowser(): Promise<void> {
 }
 
 function enqueueUpdate(update: () => Promise<void>): Promise<void> {
-	updates = updates.catch(() => undefined).then(update);
+	updates = updates
+		.catch(() => undefined)
+		.then(update)
+		.then(() => {
+			indexListeners.forEach((listener) => listener());
+		});
 	return updates;
 }
 
@@ -137,11 +150,14 @@ export function cancelIndexUpdates(): void {
 }
 
 export function searchIndex(key: string): string[] {
-	if (!index || !key) return [];
-	return index
-		.search(key, { prefix: true })
-		.map((searchResult: SearchResult): string => searchResult.id)
-		.sort()
-		.reverse()
-		.slice(0, MAX_RESULTS);
+	const query = key.trim().toLocaleLowerCase();
+	if (!index || !query) return [];
+	const matches = new Set(
+		index.search(query, { prefix: true }).map((result: SearchResult) => result.id),
+	);
+	// Also match inside unsegmented CJK text and phrases.
+	documents.forEach((doc) => {
+		if (`${doc.title}\n${doc.text}`.toLocaleLowerCase().includes(query)) matches.add(doc.indexDate);
+	});
+	return [...matches].sort().reverse().slice(0, MAX_RESULTS);
 }

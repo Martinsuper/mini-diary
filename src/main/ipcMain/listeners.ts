@@ -1,6 +1,6 @@
 import fs from "fs/promises";
 
-import { app, BrowserWindow, dialog, ipcMain } from "electron";
+import { app, BrowserWindow, dialog, ipcMain, shell } from "electron";
 import settings from "electron-settings";
 
 import { IPC, PreferenceValues } from "../../shared/ipc";
@@ -10,10 +10,12 @@ import { getWindow } from "../window";
 
 const defaults: PreferenceValues = {
 	allowFutureEntries: false,
+	enableMarkdownShortcuts: true,
 	enableSpellcheck: true,
 	filePath: "",
 	firstDayOfWeek: null,
 	hideTitles: false,
+	markdownEditorMode: "rich",
 	theme: "light",
 };
 
@@ -55,7 +57,20 @@ export default function initIpcListeners(diary: DiaryService): void {
 		if (win.isMaximized()) win.unmaximize();
 		else win.maximize();
 	});
+	ipcMain.handle(IPC.app.openExternal, async (_, url: string): Promise<boolean> => {
+		try {
+			const { protocol } = new URL(url);
+			if (!["http:", "https:", "mailto:"].includes(protocol)) return false;
+			await shell.openExternal(url);
+			return true;
+		} catch (_) {
+			return false;
+		}
+	});
 
+	ipcMain.handle(IPC.dialogs.showError, (_, title: string, message: string) => {
+		dialog.showErrorBox(title, message);
+	});
 	ipcMain.handle(IPC.diary.create, (_, password: string) => diary.create(password));
 	ipcMain.handle(IPC.diary.fileExists, () => diary.fileExists());
 	ipcMain.handle(IPC.diary.lock, () => diary.lock());
@@ -98,12 +113,29 @@ export default function initIpcListeners(diary: DiaryService): void {
 	);
 	ipcMain.handle(
 		IPC.dialogs.importFile,
-		async (_, extension: "json" | "txt"): Promise<string | null> => {
+		async (_, extension: "json" | "md" | "txt"): Promise<string | null> => {
 			const result = await dialog.showOpenDialog(parentWindow(), {
 				filters: [{ extensions: [extension], name: extension.toUpperCase() }],
 				properties: ["openFile"],
 			});
 			return result.canceled ? null : fs.readFile(result.filePaths[0], "utf8");
+		},
+	);
+	ipcMain.handle(
+		IPC.dialogs.importImage,
+		async (): Promise<{ dataUrl: string; name: string } | null> => {
+			const result = await dialog.showOpenDialog(parentWindow(), {
+				filters: [{ extensions: ["png", "jpg", "jpeg", "gif", "webp"], name: "Images" }],
+				properties: ["openFile"],
+			});
+			if (result.canceled) return null;
+			const filePath = result.filePaths[0];
+			const extension = filePath.split(".").pop()?.toLowerCase() || "png";
+			const mime = extension === "jpg" ? "jpeg" : extension;
+			return {
+				dataUrl: `data:image/${mime};base64,${(await fs.readFile(filePath)).toString("base64")}`,
+				name: filePath.split(/[\\/]/).pop() || "image",
+			};
 		},
 	);
 	ipcMain.handle(

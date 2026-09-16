@@ -1,5 +1,7 @@
 import { parseDayOneJson, parseJrnlJson, parseMiniDiaryJson } from "../../files/import/json";
+import { parseMiniDiaryMd, parseSingleEntryMd } from "../../files/import/md";
 import { parseDayOneTxt } from "../../files/import/txt";
+import { toIndexDate } from "../../utils/dateFormat";
 import { ImportFormat } from "../../types";
 import { closeOverlay } from "../app/actionCreators";
 import { mergeUpdateFile } from "../file/actionCreators";
@@ -64,6 +66,10 @@ export const runImport =
 				parseFunc = parseJrnlJson;
 			} else if (importFormat === "jsonMiniDiary") {
 				parseFunc = parseMiniDiaryJson;
+			} else if (importFormat === "mdMiniDiary") {
+				parseFunc = parseMiniDiaryMd;
+			} else if (importFormat === "mdSingle") {
+				parseFunc = (content: string) => parseSingleEntryMd(content, toIndexDate(getState().diary.dateSelected));
 			} else if (importFormat === "txtDayOne") {
 				parseFunc = parseDayOneTxt;
 			} else {

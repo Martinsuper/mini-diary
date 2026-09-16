@@ -52,7 +52,10 @@ export function getUsedLang(): string {
  * otherwise fall back to default language
  */
 export function initI18n(): void {
-	systemLang = app.getLocale();
+	systemLang =
+		process.env.ELECTRON_USER_DATA_DIR && process.env.MINI_DIARY_TEST_LOCALE
+			? process.env.MINI_DIARY_TEST_LOCALE
+			: app.getLocale();
 	const systemLangNoRegion = systemLang.split("-")[0];
 	const defaultTranslations = ALL_TRANSLATIONS[FALLBACK_LANG];
 	logger.log(`System language is "${systemLang}" ("${systemLangNoRegion}" without region)`);

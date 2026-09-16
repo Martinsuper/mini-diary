@@ -1,18 +1,22 @@
 import { OverlayType } from "../../../shared/types";
-import { Weekday, Theme, ThemePref } from "../../types";
+import { MarkdownEditorMode, Weekday, Theme, ThemePref } from "../../types";
 import { getThemeFromPref } from "../../utils/native-theme";
 import { ThunkActionT } from "../store";
 import {
 	SET_ALLOW_FUTURE_ENTRIES,
+	SET_ENABLE_MARKDOWN_SHORTCUTS,
 	SET_ENABLE_SPELLCHECK,
 	SET_HIDE_TITLES,
 	SET_FIRST_DAY_OF_WEEK,
+	SET_MARKDOWN_EDITOR_MODE,
 	SET_OVERLAY,
 	SET_THEME,
 	SET_THEME_PREF,
 	SetAllowFutureEntriesAction,
+	SetEnableMarkdownShortcutsAction,
 	SetEnableSpellcheckAction,
 	SetFirstDayOfWeekAction,
+	SetMarkdownEditorModeAction,
 	SetOverlayAction,
 	SetThemeAction,
 	SetThemePrefAction,
@@ -28,6 +32,10 @@ function setAllowFutureEntries(allowFutureEntries: boolean): SetAllowFutureEntri
 			allowFutureEntries,
 		},
 	};
+}
+
+function setEnableMarkdownShortcuts(enableMarkdownShortcuts: boolean): SetEnableMarkdownShortcutsAction {
+	return { type: SET_ENABLE_MARKDOWN_SHORTCUTS, payload: { enableMarkdownShortcuts } };
 }
 
 function setEnableSpellcheck(enableSpellcheck: boolean): SetEnableSpellcheckAction {
@@ -55,6 +63,10 @@ function setFirstDayOfWeek(firstDayOfWeek: Weekday | null): SetFirstDayOfWeekAct
 			firstDayOfWeek,
 		},
 	};
+}
+
+function setMarkdownEditorMode(markdownEditorMode: MarkdownEditorMode): SetMarkdownEditorModeAction {
+	return { type: SET_MARKDOWN_EDITOR_MODE, payload: { markdownEditorMode } };
 }
 
 export function closeOverlay(): SetOverlayAction {
@@ -94,6 +106,20 @@ export function setThemePref(themePref: ThemePref): SetThemePrefAction {
 }
 
 // Thunks
+
+export const updateMarkdownShortcutsPref =
+	(enableMarkdownShortcuts: boolean): ThunkActionT =>
+	(dispatch): void => {
+		dispatch(setEnableMarkdownShortcuts(enableMarkdownShortcuts));
+		void window.miniDiary.preferences.set("enableMarkdownShortcuts", enableMarkdownShortcuts);
+	};
+
+export const updateMarkdownEditorMode =
+	(markdownEditorMode: MarkdownEditorMode): ThunkActionT =>
+	(dispatch): void => {
+		dispatch(setMarkdownEditorMode(markdownEditorMode));
+		void window.miniDiary.preferences.set("markdownEditorMode", markdownEditorMode);
+	};
 
 export const updateSpellcheckPref =
 	(enableSpellcheck: boolean): ThunkActionT =>

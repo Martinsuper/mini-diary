@@ -29,7 +29,14 @@ test.beforeAll(async (): Promise<void> => {
 });
 
 test.afterAll(async (): Promise<void> => {
-	if (app) await app.close();
+	if (app) {
+		const child = app.process();
+		child?.kill("SIGKILL");
+		await new Promise<void>((resolve) => {
+			if (!child || child.exitCode !== null || child.signalCode !== null) resolve();
+			else child.once("exit", () => resolve());
+		});
+	}
 	if (userDataDirectory) await rm(userDataDirectory, { force: true, recursive: true });
 });
 

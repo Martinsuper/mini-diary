@@ -1,3 +1,4 @@
+import { flushPersistence, persist, settleDraft } from "../../utils/persistence";
 import { Entries, IndexDate } from "../../types";
 import { createDate } from "../../utils/dateFormat";
 import {
@@ -77,8 +78,14 @@ export const testFileExists =
 export const lock =
 	(): ThunkActionT =>
 	async (dispatch): Promise<void> => {
-		flushIndexUpdates();
-		await window.miniDiary.diary.lock();
+		try {
+			await flushPersistence();
+			flushIndexUpdates();
+			await window.miniDiary.diary.lock();
+		} catch (error) {
+			await window.miniDiary.dialogs.showError("Save failed", error.message);
+			return;
+		}
 		cancelIndexUpdates();
 		dispatch(clearFileState());
 		disableMenuItems();
@@ -106,6 +113,7 @@ export const createEncryptedFile =
 		try {
 			const { entries } = await window.miniDiary.diary.create(password);
 			dispatch(setEncryptSuccess(entries));
+			await createIndex(entries);
 			enableMenuItems();
 		} catch (error) {
 			console.error("Error creating encrypted diary file: ", error);
@@ -114,13 +122,8 @@ export const createEncryptedFile =
 	};
 
 function saveEntry(entryDate: IndexDate, entry: Entries[IndexDate] | null): ThunkActionT {
-	return async (dispatch): Promise<void> => {
-		try {
-			await window.miniDiary.diary.save({ entry, indexDate: entryDate });
-		} catch (error) {
-			console.error("Error updating diary file: ", error);
-			dispatch(setEncryptError(error.message));
-		}
+	return (): void => {
+		persist(entryDate, () => window.miniDiary.diary.save({ entry, indexDate: entryDate }));
 	};
 }
 
@@ -174,15 +177,28 @@ export const updateEntry =
 				delete updated[entryDate];
 			}
 		} else if (!updated[entryDate]) {
-			const entry = { dateUpdated: createDate().toString(), title, text };
+			const entry = {
+				dateUpdated: createDate().toString(),
+				title,
+				text,
+				textFormat: "markdown" as const,
+				textFormatVersion: 1,
+			};
 			updated[entryDate] = entry;
 			void addIndexDoc(entryDate, entry);
 		} else if (title !== updated[entryDate].title || text !== updated[entryDate].text) {
 			const oldEntry = updated[entryDate];
-			const entry = { dateUpdated: createDate().toString(), title, text };
+			const entry = {
+				dateUpdated: createDate().toString(),
+				title,
+				text,
+				textFormat: "markdown" as const,
+				textFormatVersion: 1,
+			};
 			updated[entryDate] = entry;
 			scheduleIndexUpdate(entryDate, oldEntry, entry);
 		} else {
+			settleDraft();
 			return;
 		}
 		dispatch(setEntries(updated));

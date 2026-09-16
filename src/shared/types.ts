@@ -73,13 +73,53 @@ export interface Translations {
 	// Calendar
 	today: string;
 
+	// App chrome
+	appearance: string;
+	"appearance-settings": string;
+	"personal-journal": string;
+	"saved-automatically": string;
+	"save-dirty": string;
+	"save-saving": string;
+	"save-error": string;
+	"save-retry": string;
+	"preview-readonly": string;
+	"calendar-toggle": string;
+	"link-invalid": string;
+	"link-apply": string;
+	system: string;
+
 	// Editor
 	"add-a-title": string;
 	bold: string;
 	bullets: string;
+	checklist: string;
 	italic: string;
 	list: string;
 	"write-something": string;
+	"block-style": string;
+	"copy-markdown": string;
+	"copy-plain-text": string;
+	"editor-mode": string;
+	"enable-markdown-shortcuts": string;
+	"heading-1": string;
+	"heading-2": string;
+	"heading-3": string;
+	"horizontal-rule": string;
+	"import-instructions-markdown": string;
+	"import-instructions-markdown-single": string;
+	"inline-code": string;
+	"insert-image": string;
+	link: string;
+	"link-prompt": string;
+	"markdown-source": string;
+	"markdown-help": string;
+	"unsupported-markdown": string;
+	"open-external-link": string;
+	paragraph: string;
+	quote: string;
+	"rich-editor": string;
+	strikethrough: string;
+	"word-count": string;
 
 	// Search
 	clear: string;

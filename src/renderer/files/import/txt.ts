@@ -41,7 +41,7 @@ export function parseDayOneTxt(dayOneTxt: string): Entries {
 			const title = titleLine ? titleLine.trim() : ""; // Use first line as title
 			const text = lines.join("\n").trim(); // Use rest as entry text
 
-			const entry = { dateUpdated: now, title, text };
+			const entry = { dateUpdated: now, title, text, textFormat: "plain" as const, textFormatVersion: 1 };
 			return { indexDate, entry };
 		},
 	);
