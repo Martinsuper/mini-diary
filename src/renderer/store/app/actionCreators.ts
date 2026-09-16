@@ -34,7 +34,9 @@ function setAllowFutureEntries(allowFutureEntries: boolean): SetAllowFutureEntri
 	};
 }
 
-function setEnableMarkdownShortcuts(enableMarkdownShortcuts: boolean): SetEnableMarkdownShortcutsAction {
+function setEnableMarkdownShortcuts(
+	enableMarkdownShortcuts: boolean,
+): SetEnableMarkdownShortcutsAction {
 	return { type: SET_ENABLE_MARKDOWN_SHORTCUTS, payload: { enableMarkdownShortcuts } };
 }
 
@@ -65,7 +67,9 @@ function setFirstDayOfWeek(firstDayOfWeek: Weekday | null): SetFirstDayOfWeekAct
 	};
 }
 
-function setMarkdownEditorMode(markdownEditorMode: MarkdownEditorMode): SetMarkdownEditorModeAction {
+function setMarkdownEditorMode(
+	markdownEditorMode: MarkdownEditorMode,
+): SetMarkdownEditorModeAction {
 	return { type: SET_MARKDOWN_EDITOR_MODE, payload: { markdownEditorMode } };
 }
 

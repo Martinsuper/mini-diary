@@ -69,7 +69,8 @@ export const runImport =
 			} else if (importFormat === "mdMiniDiary") {
 				parseFunc = parseMiniDiaryMd;
 			} else if (importFormat === "mdSingle") {
-				parseFunc = (content: string) => parseSingleEntryMd(content, toIndexDate(getState().diary.dateSelected));
+				parseFunc = (content: string) =>
+					parseSingleEntryMd(content, toIndexDate(getState().diary.dateSelected));
 			} else if (importFormat === "txtDayOne") {
 				parseFunc = parseDayOneTxt;
 			} else {

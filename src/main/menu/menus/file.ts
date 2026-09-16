@@ -56,12 +56,16 @@ export default function getFileMenu(): MenuItemConstructorOptions {
 					{
 						label: `${translate("import-from-format", { format: "Markdown (Mini Diary)" })}…`,
 						id: "importMdMiniDiary",
-						click(): void { importMdMiniDiary(); },
+						click(): void {
+							importMdMiniDiary();
+						},
 					},
 					{
 						label: `${translate("import-from-format", { format: "Markdown (single entry)" })}…`,
 						id: "importMdSingle",
-						click(): void { importMdSingle(); },
+						click(): void {
+							importMdSingle();
+						},
 					},
 					{
 						label: `${translate("import-from-format", { format: "TXT (Day One)" })}…`,

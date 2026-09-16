@@ -36,10 +36,15 @@ export function performMigrations(data: MiniDiaryJson): MiniDiaryJson {
 	if (semver.lt(diaryFileVersion, "2.0.0")) return migrateToMarkdown(data);
 	return {
 		...data,
-		entries: Object.fromEntries(Object.entries(data.entries).map(([date, entry]) => [date, {
-			...entry,
-			textFormat: entry.textFormat || "markdown",
-			textFormatVersion: entry.textFormatVersion || 1,
-		}])),
+		entries: Object.fromEntries(
+			Object.entries(data.entries).map(([date, entry]) => [
+				date,
+				{
+					...entry,
+					textFormat: entry.textFormat || "markdown",
+					textFormatVersion: entry.textFormatVersion || 1,
+				},
+			]),
+		),
 	};
 }

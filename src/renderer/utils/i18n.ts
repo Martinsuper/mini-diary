@@ -24,7 +24,8 @@ export const translations = bootstrap.translations as unknown as Translations;
 
 const normalizedLang = lang.toLowerCase();
 let dateLang = normalizedLang.split("-")[0];
-if (normalizedLang.startsWith("zh")) dateLang = /tw|hk|hant/.test(normalizedLang) ? "zh-tw" : "zh-cn";
+if (normalizedLang.startsWith("zh"))
+	dateLang = /tw|hk|hant/.test(normalizedLang) ? "zh-tw" : "zh-cn";
 if (dateLang === "no") dateLang = "nb";
 const calendarLocales: Record<string, Locale> = {
 	de,

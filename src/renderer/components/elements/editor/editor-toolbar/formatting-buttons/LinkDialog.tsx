@@ -71,5 +71,5 @@ export default function LinkDialog({ onApply, onClose }: Props): ReactElement {
 			</div>
 		</div>,
 		document.querySelector(".app-window") || document.body,
-	);
+	) as unknown as ReactElement;
 }

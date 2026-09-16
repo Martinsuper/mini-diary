@@ -48,7 +48,13 @@ export function parseDayOneJson(jsonStr: string): Entries {
 				title = title.substring(2);
 			}
 
-			const entry = { dateUpdated, title, text, textFormat: "markdown" as const, textFormatVersion: 1 };
+			const entry = {
+				dateUpdated,
+				title,
+				text,
+				textFormat: "markdown" as const,
+				textFormatVersion: 1,
+			};
 			return { indexDate, entry };
 		},
 	);
@@ -72,7 +78,13 @@ export function parseJrnlJson(jsonStr: string): Entries {
 			const parsedEntryCast = parsedEntry as JrnlEntry;
 			const { date: indexDate, title, body } = parsedEntryCast;
 
-			const entry = { dateUpdated: now, title: title.trim(), text: body.trim(), textFormat: "markdown" as const, textFormatVersion: 1 };
+			const entry = {
+				dateUpdated: now,
+				title: title.trim(),
+				text: body.trim(),
+				textFormat: "markdown" as const,
+				textFormatVersion: 1,
+			};
 			return { indexDate, entry };
 		},
 	);
@@ -105,7 +117,13 @@ export function parseMiniDiaryJson(jsonStr: string): Entries {
 				dateUpdated = now;
 			}
 
-			const entry = { dateUpdated, title: title.trim(), text: text.trim(), textFormat: parsedEntryCast.textFormat || "markdown" as const, textFormatVersion: parsedEntryCast.textFormatVersion || 1 };
+			const entry = {
+				dateUpdated,
+				title: title.trim(),
+				text: text.trim(),
+				textFormat: parsedEntryCast.textFormat || ("markdown" as const),
+				textFormatVersion: parsedEntryCast.textFormatVersion || 1,
+			};
 			return { indexDate, entry };
 		},
 	);
