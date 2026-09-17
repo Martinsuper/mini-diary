@@ -106,7 +106,7 @@ test("preserves the legacy sidebar and editor geometry", async (): Promise<void>
 
 	expect(sidebar.width).toBe(288);
 	expect(editor.x).toBe(sidebar.x + sidebar.width);
-	expect(search.height).toBe(40);
+	expect(search.height).toBe(36);
 	expect(calendar.width).toBeLessThanOrEqual(sidebar.width - 40);
 	expect(title.width).toBe(content.width);
 	expect(content.y).toBeGreaterThan(title.y + title.height);

@@ -1,7 +1,7 @@
 import PrevIcon from "feather-icons/dist/icons/chevron-left.svg";
 import NextIcon from "feather-icons/dist/icons/chevron-right.svg";
 import { Moment } from "moment-timezone";
-import React, { ReactElement } from "react";
+import React, { ChangeEvent, ReactElement, useEffect, useRef, useState } from "react";
 
 import { MAX_DATE, MIN_DATE } from "../../../../constants";
 import { createDate, toMonthYear } from "../../../../utils/dateFormat";
@@ -14,6 +14,7 @@ export interface StateProps {
 }
 
 export interface DispatchProps {
+	setDateSelected: (date: Moment) => void;
 	setMonthSelectedNext: () => void;
 	setMonthSelectedPrevious: () => void;
 }
@@ -21,10 +22,45 @@ export interface DispatchProps {
 type Props = StateProps & DispatchProps;
 
 export default function CalendarNav(props: Props): ReactElement {
-	const { allowFutureEntries, dateSelected, setMonthSelectedNext, setMonthSelectedPrevious } =
-		props;
-
+	const {
+		allowFutureEntries,
+		dateSelected,
+		setDateSelected,
+		setMonthSelectedNext,
+		setMonthSelectedPrevious,
+	} = props;
+	const [selectorOpen, setSelectorOpen] = useState(false);
+	const selectorRef = useRef<HTMLDivElement>(null);
 	const today = createDate();
+	const maximumDate = allowFutureEntries ? MAX_DATE : today;
+	const years = Array.from(
+		{ length: maximumDate.year() - MIN_DATE.year() + 1 },
+		(_, index) => maximumDate.year() - index,
+	);
+
+	useEffect(() => {
+		const closeSelector = (event: MouseEvent): void => {
+			if (!selectorRef.current?.contains(event.target as Node)) setSelectorOpen(false);
+		};
+		document.addEventListener("mousedown", closeSelector);
+		return () => document.removeEventListener("mousedown", closeSelector);
+	}, []);
+
+	const selectMonth = (year: number, month: number): void => {
+		const day = dateSelected.date();
+		const selectedMonth = dateSelected.clone().date(1).year(year).month(month);
+		selectedMonth.date(Math.min(day, selectedMonth.daysInMonth()));
+		setDateSelected(selectedMonth);
+	};
+	const onYearSelection = (event: ChangeEvent<HTMLSelectElement>): void => {
+		const year = Number(event.target.value);
+		const latestMonth = year === maximumDate.year() ? maximumDate.month() : 11;
+		selectMonth(year, Math.min(dateSelected.month(), latestMonth));
+	};
+	const onMonthSelection = (event: ChangeEvent<HTMLSelectElement>): void => {
+		selectMonth(dateSelected.year(), Number(event.target.value));
+		setSelectorOpen(false);
+	};
 
 	// Check if buttons for switching to previous/next month should be enabled. Determined based on
 	// the min/max dates and whether future diary entries are allowed
@@ -32,6 +68,7 @@ export default function CalendarNav(props: Props): ReactElement {
 	const canClickNext =
 		dateSelected.isBefore(MAX_DATE, "month") &&
 		(allowFutureEntries || dateSelected.isBefore(today, "month"));
+	const latestMonth = dateSelected.year() === maximumDate.year() ? maximumDate.month() : 11;
 
 	return (
 		<div className="calendar-nav">
@@ -45,7 +82,42 @@ export default function CalendarNav(props: Props): ReactElement {
 			>
 				<PrevIcon {...iconProps} />
 			</button>
-			<h1 className="month-name">{toMonthYear(dateSelected)}</h1>
+			<div className="month-selector-wrapper" ref={selectorRef}>
+				<button
+					type="button"
+					className="month-selector"
+					aria-expanded={selectorOpen}
+					onClick={() => setSelectorOpen(!selectorOpen)}
+				>
+					{toMonthYear(dateSelected)}
+				</button>
+				{selectorOpen && (
+					<div className="month-selector-popover">
+						<select
+							aria-label="年份"
+							value={dateSelected.year()}
+							onChange={onYearSelection}
+						>
+							{years.map((year) => (
+								<option key={year} value={year}>
+									{year}
+								</option>
+							))}
+						</select>
+						<select
+							aria-label="月份"
+							value={dateSelected.month()}
+							onChange={onMonthSelection}
+						>
+							{Array.from({ length: latestMonth + 1 }, (_, month) => (
+								<option key={month} value={month}>
+									{month + 1}月
+								</option>
+							))}
+						</select>
+					</div>
+				)}
+			</div>
 			<button
 				type="button"
 				className="button button-invisible"

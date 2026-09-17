@@ -1,6 +1,7 @@
 import { connect } from "react-redux";
 
 import {
+	setDateSelected,
 	setMonthSelectedNext,
 	setMonthSelectedPrevious,
 } from "../../../../store/diary/actionCreators";
@@ -13,6 +14,9 @@ const mapStateToProps = (state: RootState): StateProps => ({
 });
 
 const mapDispatchToProps = (dispatch: ThunkDispatchT): DispatchProps => ({
+	setDateSelected: (date): void => {
+		dispatch(setDateSelected(date));
+	},
 	setMonthSelectedNext: (): void => dispatch(setMonthSelectedNext()),
 	setMonthSelectedPrevious: (): void => dispatch(setMonthSelectedPrevious()),
 });
