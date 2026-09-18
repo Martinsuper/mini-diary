@@ -1,5 +1,6 @@
 # Local workspace metadata
 .claude/
+.codegraph/
 .sdlc/
 .DS_Store
 

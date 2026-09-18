@@ -11,6 +11,30 @@
 
 Project home: [**Dayleaf on GitHub**](https://github.com/Martinsuper/Dayleaf)
 
+## 数据保存与恢复
+
+- 自动保存会在关闭、锁定和导出前提交最新草稿；保存失败时保留窗口并提供重试。
+- 导入遇到同日期记录时，可以跳过、合并或替换；只有写盘成功后才完成导入。
+- 当前日记目录内的 `.dayleaf-backups` 保存最近 10 份加密快照。写作期间每隔至少 5 分钟的下一次保存，以及导入替换、改密码、重置和移动目录前会备份已有文件。
+- 在“首选项 → 数据 → 备份与恢复”选择快照并输入该快照的密码恢复。改密码前的快照仍需要旧密码；本地快照不能代替异地备份。
+- 移动目录会携带备份并记住新位置。图片以本地内嵌数据保存，单张上限 10 MB。
+- 表格、MathML 公式与 Mermaid 图表使用预览展示，切换源码模式编辑；PDF 使用相同的安全 Markdown 渲染。
+
+## 验证
+
+使用 Node.js 22 与 Yarn Classic，执行 `yarn install --frozen-lockfile`。Playwright 与 `@playwright/test` 固定为同一版本。
+
+```sh
+yarn test:jest --runInBand
+yarn test:types
+yarn lint:ts
+yarn lint:css
+yarn format
+yarn test:ui --workers=1
+```
+
+UI 测试使用独立临时日记，不访问个人日记。macOS 视觉基线应在确认界面变化后更新。
+
 ## Development
 
 The application is built with Electron and React. To run or build the app yourself, you'll need to have Node.js and Yarn installed.
