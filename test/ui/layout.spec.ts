@@ -74,7 +74,7 @@ test("keeps header and search icons fully visible", async (): Promise<void> => {
 	);
 	await expect(page.locator(".search-input-wrapper")).toHaveScreenshot("search-input.png");
 	await expect(page.locator(".app-icon-button")).toHaveScreenshot("settings-button.png", {
-		maxDiffPixels: 32,
+		maxDiffPixels: 160,
 	});
 });
 

@@ -53,13 +53,24 @@ test("persists Markdown after locking and unlocking", async (): Promise<void> =>
 	await expect(page.locator(".markdown-source")).toHaveValue(/# Persistent[\s\S]*\*\*saved\*\*/);
 });
 
-test("shows help, copy actions, and the Markdown preference", async (): Promise<void> => {
-	await page.locator(".markdown-help > button").click();
-	await expect(page.locator(".markdown-help-popover")).toBeVisible();
-	await expect(page.locator(".markdown-copy-actions button")).toHaveCount(3);
-	await app.evaluate(({ BrowserWindow }) =>
-		BrowserWindow.getAllWindows()[0].webContents.send("openOverlay", "preferences"),
-	);
+test("shows help, closes it outside, and exposes the Markdown preference", async (): Promise<void> => {
+	const helpButton = page.locator(".markdown-help > button");
+	const popover = page.locator(".markdown-help-popover");
+
+	await helpButton.click();
+	await expect(popover).toBeVisible();
+	await expect(page.locator(".markdown-copy-actions button")).toHaveCount(2);
+	await expect(page.getByRole("button", { name: /插入图片|Insert image/i })).toBeVisible();
+
+	await popover.locator("strong").click();
+	await expect(popover).toBeVisible();
+	await page.locator(".editor-scrollable").click({ position: { x: 20, y: 20 } });
+	await expect(popover).toHaveCount(0);
+
+	await helpButton.click();
+	await expect(popover).toBeVisible();
+	await page.locator(".app-icon-button").click();
+	await expect(popover).toHaveCount(0);
 	await expect(page.locator("#enable-markdown-shortcuts")).toBeChecked();
 	await page.locator("#enable-markdown-shortcuts").uncheck();
 	await expect(page.locator("#enable-markdown-shortcuts")).not.toBeChecked();
@@ -67,6 +78,7 @@ test("shows help, copy actions, and the Markdown preference", async (): Promise<
 
 test("imports and exports Dayleaf Markdown", async (): Promise<void> => {
 	await page.keyboard.press("Escape");
+	await page.locator(".editor-mode-switch button").last().click();
 	await page.locator(".markdown-source").fill("");
 	await page.locator(".markdown-source").blur();
 	await page.waitForTimeout(1200);

@@ -88,7 +88,20 @@ test("renders every supported Markdown syntax", async (): Promise<void> => {
 	await expect(editor.locator("ol")).toContainText("numbered item");
 	await expect(editor.getByRole("checkbox")).toHaveCount(2);
 	await expect(editor.getByRole("checkbox").nth(0)).not.toBeChecked();
+	await expect(editor.getByRole("checkbox").nth(0)).toHaveClass(/lexical-listitem-unchecked/);
+	await expect(editor.getByRole("checkbox").nth(0)).toHaveCSS("list-style-type", "none");
+	await editor
+		.getByRole("checkbox")
+		.nth(0)
+		.click({ position: { x: 8, y: 8 } });
+	await expect(editor.getByRole("checkbox").nth(0)).toBeChecked();
+	await editor
+		.getByRole("checkbox")
+		.nth(0)
+		.click({ position: { x: 8, y: 8 } });
+	await expect(editor.getByRole("checkbox").nth(0)).not.toBeChecked();
 	await expect(editor.getByRole("checkbox").nth(1)).toBeChecked();
+	await expect(editor.getByRole("checkbox").nth(1)).toHaveClass(/lexical-listitem-checked/);
 	await expect(editor.locator('a[href="https://github.com/Martinsuper/Dayleaf"]')).toHaveText(
 		"Dayleaf",
 	);
@@ -97,4 +110,35 @@ test("renders every supported Markdown syntax", async (): Promise<void> => {
 
 	await page.locator(".editor-mode-switch button").nth(1).click();
 	await expect(page.locator(".markdown-source")).toHaveValue(markdown);
+});
+
+test("creates checklists while typing Markdown shortcuts", async (): Promise<void> => {
+	await page.locator(".editor-mode-switch button").first().click();
+	const editor = page.locator(".lexical-content-editable");
+	await editor.fill("");
+	await editor.click();
+	await page.keyboard.type("- [ ] ");
+	await page.keyboard.type("open task");
+	await expect(editor.getByRole("checkbox")).toHaveCount(1);
+	await expect(editor.getByRole("checkbox")).not.toBeChecked();
+
+	await page.locator(".editor-mode-switch button").nth(1).click();
+	await expect(page.locator(".markdown-source")).toHaveValue("- [ ] open task");
+});
+
+test("shows valid examples for every syntax in Markdown help", async (): Promise<void> => {
+	await page.locator(".markdown-help > button").click();
+	const examples = page.locator(".markdown-help-popover code");
+	await expect(examples).toHaveText([
+		"# Heading",
+		"**bold**",
+		"*italic*",
+		"~~strike~~",
+		"[text](https://example.com)",
+		"> quote",
+		"- item / 1. item",
+		"- [ ] task",
+		"`code` / ```",
+		"---",
+	]);
 });
