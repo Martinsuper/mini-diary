@@ -49,6 +49,8 @@ const fields = {
 
 export interface StateProps {
 	importFormat: ImportFormat;
+	importStatus: string;
+	importErrorMsg: string;
 }
 
 export interface DispatchProps {
@@ -70,12 +72,16 @@ export default class ImportOverlay extends PureComponent<Props, {}> {
 			ImportOverlay.showImportFormatError();
 			return;
 		}
-		const content = await window.miniDiary.dialogs.importFile(fields[importFormat].extension);
-		if (content !== null) runImport(content);
+		try {
+			const content = await window.miniDiary.dialogs.importFile(fields[importFormat].extension);
+			if (content !== null) runImport(content);
+		} catch (error) {
+			await window.miniDiary.dialogs.showError(translations["import-error-title"], error.message);
+		}
 	}
 
 	render(): ReactNode {
-		const { importFormat } = this.props;
+		const { importFormat, importStatus, importErrorMsg } = this.props;
 		if (!importFormat) {
 			ImportOverlay.showImportFormatError();
 			return null;
@@ -84,8 +90,10 @@ export default class ImportOverlay extends PureComponent<Props, {}> {
 			<OverlayContainer className="import-overlay">
 				<h1>{fields[importFormat].title}</h1>
 				{fields[importFormat].instructions}
+				{importErrorMsg && <p role="alert">{importErrorMsg}</p>}
 				<button
 					type="button"
+					disabled={importStatus === "inProgress"}
 					className="button button-main"
 					onClick={(): void => {
 						void this.selectAndImportFile();

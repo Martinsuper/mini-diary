@@ -9,8 +9,12 @@ const mapStateToProps = (state: RootState): StateProps => ({
 });
 
 const mapDispatchToProps = (dispatch: ThunkDispatchT): DispatchProps => ({
-	resetDiary: (): void => dispatch(resetDiary()),
-	testFileExists: (): void => dispatch(testFileExists()),
+	resetDiary: async (): Promise<void> => {
+		await dispatch(resetDiary());
+	},
+	testFileExists: async (): Promise<void> => {
+		await dispatch(testFileExists());
+	},
 });
 
 export default connect(mapStateToProps, mapDispatchToProps)(DiaryResetButton);

@@ -3,6 +3,7 @@ import { convertToMd } from "../../files/export/md";
 import { convertToDayOneTxt } from "../../files/export/txt";
 import { ExportFormat, Entries } from "../../types";
 import { translations } from "../../utils/i18n";
+import { flushPersistence } from "../../utils/persistence";
 import { ThunkActionT } from "../store";
 import {
 	EXPORT_ERROR,
@@ -40,6 +41,7 @@ const exportToFile =
 	async (dispatch, getState): Promise<void> => {
 		dispatch(setExportInProgress());
 		try {
+			await flushPersistence();
 			const content = await converterFunc(getState().file.entries);
 			await window.miniDiary.dialogs.exportFile(
 				`dayleaf-export.${fileExtensions[exportFormat]}`,
@@ -70,6 +72,7 @@ export const exportToPdf =
 	async (dispatch, getState): Promise<void> => {
 		dispatch(setExportInProgress());
 		try {
+			await flushPersistence();
 			const markdown = await convertToMd(getState().file.entries);
 			await window.miniDiary.dialogs.exportPdf(
 				`dayleaf-export.${fileExtensions.pdf}`,

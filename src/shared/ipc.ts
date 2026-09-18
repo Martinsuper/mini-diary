@@ -11,6 +11,7 @@ export const IPC = {
 	},
 	dialogs: {
 		confirmReset: "dialogs:confirm-reset",
+		importConflict: "dialogs:import-conflict",
 		exportFile: "dialogs:export-file",
 		exportPdf: "dialogs:export-pdf",
 		importFile: "dialogs:import-file",
@@ -20,6 +21,8 @@ export const IPC = {
 	},
 	diary: {
 		create: "diary:create",
+		listBackups: "diary:list-backups",
+		restoreBackup: "diary:restore-backup",
 		fileExists: "diary:file-exists",
 		getPath: "diary:get-path",
 		lock: "diary:lock",
@@ -89,6 +92,10 @@ export interface MiniDiaryApi {
 		openExternal: (url: string) => Promise<boolean>;
 	};
 	dialogs: {
+		importConflict: (
+			dates: string[],
+			added: number,
+		) => Promise<"skip" | "replace" | "merge" | "cancel">;
 		confirmReset: (
 			title: string,
 			message: string,
@@ -103,6 +110,8 @@ export interface MiniDiaryApi {
 		showError: (title: string, message: string) => Promise<void>;
 	};
 	diary: {
+		listBackups: () => Promise<string[]>;
+		restoreBackup: (name: string, password: string) => Promise<DiaryPayload>;
 		create: (password: string) => Promise<DiaryPayload>;
 		fileExists: () => Promise<boolean>;
 		getPath: () => Promise<string>;

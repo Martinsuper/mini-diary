@@ -42,6 +42,12 @@ const translationsZh: Partial<Translations> = {
 	"previous-month": "向前1月",
 	"privacy-policy": "隐私条款",
 	statistics: "统计数据",
+	"total-entries": "日记总篇数",
+	"entries-per-week": "平均每周篇数",
+	"streak-best": "最长连续写作天数",
+	"streak-current": "当前连续写作天数",
+	"total-words": "总字数",
+	"words-per-entry": "平均每篇字数",
 	website: "官网",
 
 	// Weekdays
@@ -92,8 +98,7 @@ const translationsZh: Partial<Translations> = {
 	"heading-2": "二级标题",
 	"heading-3": "三级标题",
 	"horizontal-rule": "分隔线",
-	"import-instructions-markdown":
-		"选择由 Dayleaf 导出的 Markdown 文件，将按日期标题恢复多篇日记。",
+	"import-instructions-markdown": "选择由 Dayleaf 导出的 Markdown 文件，将按日期标题恢复多篇日记。",
 	"import-instructions-markdown-single":
 		"选择要导入当前日期的 Markdown 文件。文件开头的一级标题将作为日记标题。",
 	"inline-code": "行内代码",
@@ -127,7 +132,8 @@ const translationsZh: Partial<Translations> = {
 	ok: "确定",
 	"reset-diary": "重置日记本",
 	"reset-diary-confirm": "是的，我确定",
-	"reset-diary-msg": "你确定要重置日记本吗？重置将会删除你的所有内容，并且不能被恢复！",
+	"reset-diary-msg":
+		"确定重置日记本？当前日记将被删除，删除前会保存一份加密备份，可在备份与恢复中找回。",
 
 	// Password and directory
 	"change-directory": "更改路径",

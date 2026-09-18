@@ -22,7 +22,9 @@ const mapDispatchToProps = (dispatch: ThunkDispatchT): DispatchProps => ({
 	openPreferences: (): void => {
 		dispatch(openOverlay("preferences"));
 	},
-	testFileExists: (): void => dispatch(testFileExists()),
+	testFileExists: async (): Promise<void> => {
+		await dispatch(testFileExists());
+	},
 	updateThemePref: (themePref: ThemePref): void => dispatch(updateThemePref(themePref)),
 });
 

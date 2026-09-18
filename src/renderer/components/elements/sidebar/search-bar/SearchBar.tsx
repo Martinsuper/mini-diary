@@ -26,7 +26,7 @@ interface State {
 }
 
 export default class SearchBar extends PureComponent<Props, State> {
-	updateSearchKeyDebounced: (newSearchKey: string) => void;
+	updateSearchKeyDebounced: ReturnType<typeof debounce>;
 
 	constructor(props: Props) {
 		super(props);
@@ -37,6 +37,10 @@ export default class SearchBar extends PureComponent<Props, State> {
 		this.clearSearchKey = this.clearSearchKey.bind(this);
 		this.updateSearchKey = this.updateSearchKey.bind(this);
 		this.updateSearchKeyDebounced = debounce(this.updateSearchKey, 500);
+	}
+
+	componentWillUnmount(): void {
+		this.updateSearchKeyDebounced.cancel();
 	}
 
 	onChange(e: ChangeEvent<HTMLInputElement>): void {
@@ -52,6 +56,7 @@ export default class SearchBar extends PureComponent<Props, State> {
 	}
 
 	clearSearchKey(): void {
+		this.updateSearchKeyDebounced.cancel();
 		this.setState({ newSearchKey: "" });
 		this.updateSearchKey("");
 	}

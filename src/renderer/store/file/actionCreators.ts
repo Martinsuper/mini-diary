@@ -1,4 +1,5 @@
 import { flushPersistence, persist, settleDraft } from "../../utils/persistence";
+import mergeEntries from "../../files/import/mergeEntries";
 import { Entries, IndexDate } from "../../types";
 import { createDate } from "../../utils/dateFormat";
 import {
@@ -6,6 +7,7 @@ import {
 	cancelIndexUpdate,
 	cancelIndexUpdates,
 	createIndex,
+	clearIndex,
 	flushIndexUpdates,
 	removeIndexDoc,
 	scheduleIndexUpdate,
@@ -86,7 +88,7 @@ export const lock =
 			await window.miniDiary.dialogs.showError("Save failed", error.message);
 			return;
 		}
-		cancelIndexUpdates();
+		await clearIndex();
 		dispatch(clearFileState());
 		disableMenuItems();
 	};
@@ -136,6 +138,7 @@ function replaceEntries(entries: Entries): ThunkActionT {
 		} catch (error) {
 			console.error("Error updating diary file: ", error);
 			dispatch(setEncryptError(error.message));
+			throw error;
 		}
 	};
 }
@@ -143,8 +146,11 @@ function replaceEntries(entries: Entries): ThunkActionT {
 export const resetDiary =
 	(): ThunkActionT =>
 	async (dispatch): Promise<void> => {
+		await flushPersistence();
 		await window.miniDiary.diary.reset();
+		await clearIndex();
 		dispatch(clearFileState());
+		dispatch(setFileExists(false));
 		disableMenuItems();
 	};
 
@@ -153,6 +159,7 @@ export const updatePassword =
 	async (dispatch, getState): Promise<void> => {
 		dispatch(setEncryptInProgress());
 		try {
+			await flushPersistence();
 			const { entries } = await window.miniDiary.diary.updatePassword(
 				newPassword,
 				getState().file.entries,
@@ -160,6 +167,7 @@ export const updatePassword =
 			dispatch(setEncryptSuccess(entries));
 		} catch (error) {
 			dispatch(setEncryptError(error.message));
+			throw error;
 		}
 	};
 
@@ -208,8 +216,23 @@ export const updateEntry =
 export const mergeUpdateFile =
 	(newEntries: Entries): ThunkActionT =>
 	async (dispatch, getState): Promise<void> => {
-		const entries = { ...getState().file.entries, ...newEntries };
-		dispatch(setEntries(entries));
+		await flushPersistence();
+		const existing = getState().file.entries;
+		const conflicts = Object.keys(newEntries).filter((date) => Boolean(existing[date]));
+		const choice = conflicts.length
+			? await window.miniDiary.dialogs.importConflict(
+					conflicts,
+					Object.keys(newEntries).length - conflicts.length,
+			  )
+			: "replace";
+		if (choice === "cancel") throw Error("Import cancelled");
+		const entries = { ...existing };
+		Object.entries(newEntries).forEach(([date, entry]) => {
+			if (existing[date] && choice === "skip") return;
+			entries[date] =
+				existing[date] && choice === "merge" ? mergeEntries(existing[date], entry) : entry;
+		});
+		await dispatch(replaceEntries(entries));
+		cancelIndexUpdates();
 		await createIndex(entries);
-		dispatch(replaceEntries(entries));
 	};

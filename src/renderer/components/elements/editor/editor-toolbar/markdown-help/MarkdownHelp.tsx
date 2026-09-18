@@ -1,7 +1,7 @@
 import { IconHelpCircle } from "@tabler/icons-react";
-import React, { ReactElement, useState } from "react";
+import React, { ReactElement, useEffect, useRef, useState } from "react";
 
-import { translations } from "../../../../../utils/i18n";
+import { lang, translations } from "../../../../../utils/i18n";
 import { iconProps } from "../../../../../utils/icons";
 import mdToTxt from "../../../../../utils/mdToTxt";
 
@@ -10,7 +10,7 @@ const SYNTAX = [
 	["**bold**", translations.bold],
 	["*italic*", translations.italic],
 	["~~strike~~", translations.strikethrough],
-	["[text](https://…)", translations.link],
+	["[text](https://example.com)", translations.link],
 	["> quote", translations.quote],
 	["- item / 1. item", translations.list],
 	["- [ ] task", translations.checklist],
@@ -20,13 +20,44 @@ const SYNTAX = [
 
 interface Props {
 	markdown: string;
-	onInsertMarkdown: (markdown: string) => void;
 }
 
-export default function MarkdownHelp({ markdown, onInsertMarkdown }: Props): ReactElement {
+export default function MarkdownHelp({ markdown }: Props): ReactElement {
 	const [isOpen, setIsOpen] = useState(false);
+	const [copied, setCopied] = useState("");
+	const copyText = async (plain: boolean): Promise<void> => {
+		try {
+			await navigator.clipboard.writeText(plain ? await mdToTxt(markdown) : markdown);
+			setCopied(lang.startsWith("zh") ? "已复制" : "Copied");
+		} catch (error) {
+			setCopied(error.message);
+		}
+	};
+	const containerRef = useRef<HTMLDivElement>(null);
+
+	useEffect(() => {
+		if (!isOpen) return undefined;
+		const closeOnEscape = (event: KeyboardEvent): void => {
+			if (event.key === "Escape") {
+				setIsOpen(false);
+				containerRef.current?.querySelector("button")?.focus();
+			}
+		};
+
+		const closeOnOutsideClick = (event: MouseEvent): void => {
+			if (!containerRef.current?.contains(event.target as Node)) setIsOpen(false);
+		};
+
+		document.addEventListener("mousedown", closeOnOutsideClick);
+		document.addEventListener("keydown", closeOnEscape);
+		return (): void => {
+			document.removeEventListener("mousedown", closeOnOutsideClick);
+			document.removeEventListener("keydown", closeOnEscape);
+		};
+	}, [isOpen]);
+
 	return (
-		<div className="markdown-help">
+		<div className="markdown-help" ref={containerRef}>
 			<button
 				type="button"
 				className="button button-invisible"
@@ -61,18 +92,7 @@ export default function MarkdownHelp({ markdown, onInsertMarkdown }: Props): Rea
 							type="button"
 							className="button"
 							onClick={(): void => {
-								void window.miniDiary.dialogs.importImage().then((image) => {
-									if (image) onInsertMarkdown(`![${image.name}](${image.dataUrl})`);
-								});
-							}}
-						>
-							{translations["insert-image"]}
-						</button>
-						<button
-							type="button"
-							className="button"
-							onClick={(): void => {
-								void navigator.clipboard.writeText(markdown);
+								void copyText(false);
 							}}
 						>
 							{translations["copy-markdown"]}
@@ -81,12 +101,13 @@ export default function MarkdownHelp({ markdown, onInsertMarkdown }: Props): Rea
 							type="button"
 							className="button"
 							onClick={(): void => {
-								void mdToTxt(markdown).then((text) => navigator.clipboard.writeText(text));
+								void copyText(true);
 							}}
 						>
 							{translations["copy-plain-text"]}
 						</button>
 					</div>
+					<p role="status">{copied}</p>
 				</div>
 			)}
 		</div>

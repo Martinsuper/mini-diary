@@ -19,6 +19,7 @@ const api: MiniDiaryApi = {
 		openExternal: (url: string): Promise<boolean> => ipcRenderer.invoke(IPC.app.openExternal, url),
 	},
 	dialogs: {
+		importConflict: (dates, added) => ipcRenderer.invoke(IPC.dialogs.importConflict, dates, added),
 		confirmReset: (title, message, confirm, cancel) =>
 			ipcRenderer.invoke(IPC.dialogs.confirmReset, title, message, confirm, cancel),
 		exportFile: (defaultName, buttonLabel, content) =>
@@ -31,6 +32,8 @@ const api: MiniDiaryApi = {
 		showError: (title, message) => ipcRenderer.invoke(IPC.dialogs.showError, title, message),
 	},
 	diary: {
+		listBackups: () => ipcRenderer.invoke(IPC.diary.listBackups),
+		restoreBackup: (name, password) => ipcRenderer.invoke(IPC.diary.restoreBackup, name, password),
 		create: (password) => ipcRenderer.invoke(IPC.diary.create, password),
 		fileExists: () => ipcRenderer.invoke(IPC.diary.fileExists),
 		getPath: () => ipcRenderer.invoke(IPC.diary.getPath),

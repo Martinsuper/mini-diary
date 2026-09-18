@@ -39,11 +39,21 @@ export default function CalendarNav(props: Props): ReactElement {
 	);
 
 	useEffect(() => {
+		const onEscape = (event: KeyboardEvent): void => {
+			if (event.key === "Escape") {
+				setSelectorOpen(false);
+				selectorRef.current?.querySelector("button")?.focus();
+			}
+		};
 		const closeSelector = (event: MouseEvent): void => {
 			if (!selectorRef.current?.contains(event.target as Node)) setSelectorOpen(false);
 		};
 		document.addEventListener("mousedown", closeSelector);
-		return () => document.removeEventListener("mousedown", closeSelector);
+		document.addEventListener("keydown", onEscape);
+		return () => {
+			document.removeEventListener("mousedown", closeSelector);
+			document.removeEventListener("keydown", onEscape);
+		};
 	}, []);
 
 	const selectMonth = (year: number, month: number): void => {
@@ -94,7 +104,7 @@ export default function CalendarNav(props: Props): ReactElement {
 				{selectorOpen && (
 					<div className="month-selector-popover">
 						<select
-							aria-label="年份"
+							aria-label={translations["go-to-date"]}
 							value={dateSelected.year()}
 							onChange={onYearSelection}
 						>
@@ -105,13 +115,13 @@ export default function CalendarNav(props: Props): ReactElement {
 							))}
 						</select>
 						<select
-							aria-label="月份"
+							aria-label={translations["next-month"]}
 							value={dateSelected.month()}
 							onChange={onMonthSelection}
 						>
 							{Array.from({ length: latestMonth + 1 }, (_, month) => (
 								<option key={month} value={month}>
-									{month + 1}月
+									{dateSelected.clone().month(month).format("MMMM")}
 								</option>
 							))}
 						</select>

@@ -34,7 +34,7 @@ export default function ThemePrefComponent(props: Props): ReactElement {
 						<label htmlFor="radio-theme-auto">
 							<input
 								type="radio"
-								name="radio-theme-auto"
+								name="theme"
 								id="radio-theme-auto"
 								checked={themePref === "auto"}
 								onChange={setThemePrefAuto}
@@ -45,7 +45,7 @@ export default function ThemePrefComponent(props: Props): ReactElement {
 					<label htmlFor="radio-theme-light">
 						<input
 							type="radio"
-							name="radio-theme-light"
+							name="theme"
 							id="radio-theme-light"
 							checked={themePref === "light"}
 							onChange={setThemePrefLight}
@@ -55,7 +55,7 @@ export default function ThemePrefComponent(props: Props): ReactElement {
 					<label htmlFor="radio-theme-dark">
 						<input
 							type="radio"
-							name="radio-theme-dark"
+							name="theme"
 							id="radio-theme-dark"
 							checked={themePref === "dark"}
 							onChange={setThemePrefDark}

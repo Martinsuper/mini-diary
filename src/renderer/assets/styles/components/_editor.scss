@@ -1,3 +1,6 @@
+@use "../base/variables" as *;
+@use "../base/mixins" as *;
+
 $editor-padding-small: 1.25 * $spacing-abs-large;
 $editor-padding-large: 2 * $spacing-abs-large;
 
@@ -110,6 +113,42 @@ $editor-padding-large: 2 * $spacing-abs-large;
 	li {
 		margin: 0.25em 0;
 	}
+	.lexical-listitem-checked,
+	.lexical-listitem-unchecked {
+		position: relative;
+		padding-left: 1.55em;
+		list-style: none;
+		cursor: pointer;
+	}
+	.lexical-listitem-checked::before,
+	.lexical-listitem-unchecked::before {
+		position: absolute;
+		top: 50%;
+		left: 0;
+		box-sizing: border-box;
+		width: 1em;
+		height: 1em;
+		background: var(--ui-surface);
+		border: 1.5px solid var(--ui-muted);
+		border-radius: 3px;
+		transform: translateY(-50%);
+		content: "";
+	}
+	.lexical-listitem-checked::before {
+		background: var(--ui-accent);
+		border-color: var(--ui-accent);
+	}
+	.lexical-listitem-checked::after {
+		position: absolute;
+		top: 50%;
+		left: 0.27em;
+		width: 0.45em;
+		height: 0.25em;
+		border-bottom: 2px solid #ffffff;
+		border-left: 2px solid #ffffff;
+		transform: translateY(-65%) rotate(-45deg);
+		content: "";
+	}
 	code {
 		padding: 0.12em 0.35em;
 		font-size: 0.9em;
@@ -137,23 +176,23 @@ $editor-padding-large: 2 * $spacing-abs-large;
 	.token.comment,
 	.token.prolog,
 	.token.doctype {
-		color: #8c8c8c;
+		color: var(--code-comment, #626975);
 	}
 	.token.keyword,
 	.token.boolean {
-		color: #a626a4;
+		color: var(--code-keyword, #8f218d);
 	}
 	.token.string,
 	.token.attr-value {
-		color: #50a14f;
+		color: var(--code-string, #347631);
 	}
 	.token.function,
 	.token.class-name {
-		color: #4078f2;
+		color: var(--code-function, #155db6);
 	}
 	.token.number,
 	.token.constant {
-		color: #986801;
+		color: var(--code-number, #805800);
 	}
 
 	a {
@@ -222,6 +261,50 @@ $editor-padding-large: 2 * $spacing-abs-large;
 	img {
 		max-width: 100%;
 	}
+
+	h1,
+	h2,
+	h3 {
+		margin: 1em 0 0.5em;
+		font-weight: 600;
+	}
+	h1 {
+		font-size: 2em;
+	}
+	h2 {
+		font-size: 1.5em;
+	}
+	h3 {
+		font-size: 1.25em;
+	}
+	p {
+		margin-bottom: 1em;
+	}
+	ul {
+		padding-left: 1.5em;
+		list-style: disc;
+	}
+	ol {
+		padding-left: 1.5em;
+		list-style: decimal;
+	}
+	pre {
+		padding: 12px;
+		overflow: auto;
+		background: var(--ui-bg);
+	}
+	svg {
+		max-width: 100%;
+		height: auto;
+	}
+}
+
+.theme-dark {
+	--code-comment: #adb4bf;
+	--code-keyword: #e6a2ed;
+	--code-string: #a7d59a;
+	--code-function: #9dbdff;
+	--code-number: #e5c07b;
 }
 
 .markdown-source {

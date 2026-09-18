@@ -18,7 +18,6 @@ interface DebouncedIndexUpdate {
 
 const BATCH_SIZE = 25;
 const INDEX_UPDATE_DELAY = 1000;
-const MAX_RESULTS = 100;
 
 let index: MiniSearch | null = null;
 const documents = new Map<IndexDate, IndexDoc>();
@@ -149,6 +148,14 @@ export function cancelIndexUpdates(): void {
 	pendingIndexUpdates.clear();
 }
 
+/** Drop decrypted search content after all queued updates finish. */
+export async function clearIndex(): Promise<void> {
+	cancelIndexUpdates();
+	await updates.catch(() => undefined);
+	index = null;
+	documents.clear();
+}
+
 export function searchIndex(key: string): string[] {
 	const query = key.trim().toLocaleLowerCase();
 	if (!index || !query) return [];
@@ -159,5 +166,10 @@ export function searchIndex(key: string): string[] {
 	documents.forEach((doc) => {
 		if (`${doc.title}\n${doc.text}`.toLocaleLowerCase().includes(query)) matches.add(doc.indexDate);
 	});
-	return [...matches].sort().reverse().slice(0, MAX_RESULTS);
+	return [...matches].sort().reverse();
+}
+
+/** Reuse indexed plain text for snippets instead of exposing Markdown or image payloads. */
+export function getSearchText(date: IndexDate): string {
+	return documents.get(date)?.text || "";
 }

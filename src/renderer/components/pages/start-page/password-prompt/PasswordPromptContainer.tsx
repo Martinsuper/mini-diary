@@ -5,8 +5,8 @@ import { RootState, ThunkDispatchT } from "../../../../store/store";
 import PasswordPrompt, { DispatchProps, StateProps } from "./PasswordPrompt";
 
 const mapStateToProps = (state: RootState): StateProps => ({
-	decryptErrorMsg: state.file.decryptErrorMsg,
 	decryptStatus: state.file.decryptStatus,
+	decryptErrorMsg: state.file.decryptErrorMsg,
 });
 
 const mapDispatchToProps = (dispatch: ThunkDispatchT): DispatchProps => ({

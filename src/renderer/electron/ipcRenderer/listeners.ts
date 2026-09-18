@@ -23,6 +23,10 @@ import store, { ThunkDispatchT } from "../../store/store";
 const dispatchThunk = store.dispatch as ThunkDispatchT;
 
 export default function initIpcListeners(): void {
+	window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", (event) => {
+		if (store.getState().app.themePref === "auto")
+			dispatchThunk(setTheme(event.matches ? "dark" : "light"));
+	});
 	subscribeIndex(() => {
 		const key = store.getState().diary.searchKey;
 		if (key) dispatchThunk(search(key));
@@ -96,6 +100,6 @@ export default function initIpcListeners(): void {
 		}
 	});
 	window.miniDiary.events.onThemeChange((theme): void => {
-		dispatchThunk(setTheme(theme));
+		if (store.getState().app.themePref === "auto") dispatchThunk(setTheme(theme));
 	});
 }

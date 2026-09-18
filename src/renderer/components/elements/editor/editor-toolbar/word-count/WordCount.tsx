@@ -1,6 +1,6 @@
 import { Moment } from "moment-timezone";
 import React, { ReactElement } from "react";
-import countWords from "word-count";
+import { countEntryWords } from "../../../../../utils/diaryStats";
 
 import { Entries } from "../../../../../types";
 import { toIndexDate } from "../../../../../utils/dateFormat";
@@ -26,7 +26,7 @@ export default function WordCount(props: Props): ReactElement {
 
 	if (indexDate in entries) {
 		const entry = entries[indexDate];
-		wordCount = countWords(`${entry.title ?? ""}\n${entry.text ?? ""}`);
+		wordCount = countEntryWords(entry.title ?? "", entry.text ?? "");
 	}
 
 	return (

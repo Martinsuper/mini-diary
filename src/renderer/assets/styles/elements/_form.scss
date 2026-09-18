@@ -1,3 +1,6 @@
+@use "../base/variables" as *;
+@use "../base/mixins" as *;
+
 fieldset {
 	margin-top: $spacing-abs-medium;
 	border: 0;

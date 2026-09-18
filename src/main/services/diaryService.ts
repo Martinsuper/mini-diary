@@ -1,6 +1,7 @@
 import crypto from "crypto";
 import fs from "fs/promises";
 import path from "path";
+import { constants } from "fs";
 
 import { app } from "electron";
 
@@ -69,8 +70,10 @@ export default class DiaryService {
 
 	private writing = false;
 
-	constructor() {
-		this.directory = app.getPath("userData");
+	private lastBackup = 0;
+
+	constructor(directory = app.getPath("userData")) {
+		this.directory = directory;
 	}
 
 	getDirectory(): string {
@@ -78,18 +81,15 @@ export default class DiaryService {
 	}
 
 	async setDirectory(directory: string): Promise<void> {
-		const target = path.resolve(directory, FILE_NAME);
-		try {
-			await fs.access(target);
-		} catch {
-			this.directory = directory;
-			return;
-		}
-		this.directory = directory;
+		await this.lock();
+		await fs.access(directory, constants.R_OK);
+		await fs.access(directory, constants.W_OK);
+		this.directory = path.resolve(directory);
 	}
 
 	async moveTo(directory: string): Promise<void> {
 		await this.flush();
+		await this.backup();
 		const destination = path.resolve(directory, FILE_NAME);
 		try {
 			await fs.access(destination);
@@ -97,7 +97,24 @@ export default class DiaryService {
 		} catch (error) {
 			if (error.code !== "ENOENT") throw error;
 		}
-		await fs.rename(this.filePath(), destination);
+		// Exclusive copy also works across volumes and never replaces another diary.
+		await fs.copyFile(this.filePath(), destination, constants.COPYFILE_EXCL);
+		try {
+			await fs.chmod(destination, 0o600);
+			const backupDirectory = path.join(directory, ".dayleaf-backups");
+			await fs.mkdir(backupDirectory, { recursive: true, mode: 0o700 });
+			for (const name of await this.listBackups()) {
+				await fs.copyFile(
+					path.join(this.directory, ".dayleaf-backups", name),
+					path.join(backupDirectory, name),
+					constants.COPYFILE_EXCL,
+				);
+			}
+			await fs.unlink(this.filePath());
+		} catch (error) {
+			await fs.rm(destination, { force: true });
+			throw error;
+		}
 		this.directory = directory;
 	}
 
@@ -105,12 +122,14 @@ export default class DiaryService {
 		try {
 			await fs.access(this.filePath());
 			return true;
-		} catch {
-			return false;
+		} catch (error) {
+			if (error.code === "ENOENT") return false;
+			throw error;
 		}
 	}
 
 	async create(password: string): Promise<DiaryPayload> {
+		if (await this.fileExists()) throw Error("A diary already exists in this directory");
 		const salt = crypto.randomBytes(16);
 		const metadata = this.metadata();
 		const entries = {};
@@ -150,19 +169,30 @@ export default class DiaryService {
 	}
 
 	async replaceEntries(entries: Entries): Promise<void> {
-		this.requireSession().entries = entries;
-		this.queueWrite();
-		await this.writePromise;
+		await this.flush();
+		const session = this.requireSession();
+		await this.backup();
+		const next = { ...session, entries };
+		await this.write(next);
+		this.session = next;
 	}
 
 	async updatePassword(password: string, entries: Entries): Promise<DiaryPayload> {
 		await this.flush();
-		const metadata = this.requireSession().metadata;
-		this.lockSession();
+		const previous = this.requireSession();
+		const { metadata } = previous;
+		await this.backup();
 		const salt = crypto.randomBytes(16);
-		this.session = { entries, key: await deriveKey(password, salt), metadata, salt };
-		await this.write();
-		return { entries, metadata: this.session.metadata };
+		const next = { entries, key: await deriveKey(password, salt), metadata, salt };
+		try {
+			await this.write(next);
+		} catch (error) {
+			next.key.fill(0);
+			throw error;
+		}
+		previous.key.fill(0);
+		this.session = next;
+		return { entries, metadata: next.metadata };
 	}
 
 	async flush(): Promise<void> {
@@ -175,8 +205,63 @@ export default class DiaryService {
 	}
 
 	async reset(): Promise<void> {
+		await this.backup();
 		await this.lock();
 		await fs.unlink(this.filePath());
+	}
+
+	/** Keep bounded encrypted recovery snapshots, including before destructive operations. */
+	async backup(): Promise<void> {
+		if (!(await this.fileExists())) return;
+		const directory = path.join(this.directory, ".dayleaf-backups");
+		await fs.mkdir(directory, { recursive: true, mode: 0o700 });
+		const name = `${Date.now()}-${crypto.randomBytes(4).toString("hex")}.txt`;
+		await fs.copyFile(this.filePath(), path.join(directory, name), constants.COPYFILE_EXCL);
+		await fs.chmod(path.join(directory, name), 0o600);
+		const files = (await fs.readdir(directory))
+			.filter((file) => /^\d+-[a-f0-9]+\.txt$/.test(file))
+			.sort()
+			.reverse();
+		await Promise.all(files.slice(10).map((file) => fs.unlink(path.join(directory, file))));
+		this.lastBackup = Date.now();
+	}
+
+	/** Return only snapshots owned by the current diary directory. */
+	async listBackups(): Promise<string[]> {
+		try {
+			return (await fs.readdir(path.join(this.directory, ".dayleaf-backups")))
+				.filter((file) => /^\d+-[a-f0-9]+\.txt$/.test(file))
+				.sort()
+				.reverse();
+		} catch (error) {
+			if (error.code === "ENOENT") return [];
+			throw error;
+		}
+	}
+
+	/** Validate and decrypt a snapshot before atomically restoring it. */
+	async restoreBackup(name: string, password: string): Promise<DiaryPayload> {
+		if (!(await this.listBackups()).includes(name)) throw Error("Invalid backup");
+		await this.flush();
+		const serialized = await fs.readFile(
+			path.join(this.directory, ".dayleaf-backups", name),
+			"utf8",
+		);
+		const temporaryDirectory = await fs.mkdtemp(path.join(app.getPath("temp"), "dayleaf-restore-"));
+		const candidate = new DiaryService(temporaryDirectory);
+		try {
+			await fs.writeFile(path.join(temporaryDirectory, FILE_NAME), serialized, { mode: 0o600 });
+			const payload = await candidate.read(password);
+			await this.backup();
+			await this.write(candidate.requireSession());
+			this.lockSession();
+			this.session = candidate.session;
+			candidate.session = null;
+			return payload;
+		} finally {
+			candidate.lockSession();
+			await fs.rm(temporaryDirectory, { recursive: true, force: true });
+		}
 	}
 
 	private filePath(): string {
@@ -218,13 +303,13 @@ export default class DiaryService {
 			});
 	}
 
-	private async write(): Promise<void> {
-		const session = this.requireSession();
+	private async write(session = this.requireSession()): Promise<void> {
+		if (Date.now() - this.lastBackup > 5 * 60_000) await this.backup();
 		const payload = {
 			entries: session.entries,
 			metadata: { ...session.metadata, dateUpdated: new Date().toISOString() },
 		};
-		session.metadata = payload.metadata;
+		Object.assign(session, { metadata: payload.metadata });
 		const nonce = crypto.randomBytes(12);
 		const cipher = crypto.createCipheriv("aes-256-gcm", session.key, nonce);
 		const ciphertext = Buffer.concat([
@@ -241,7 +326,17 @@ export default class DiaryService {
 		const target = this.filePath();
 		const temporary = `${target}.${process.pid}.${crypto.randomBytes(8).toString("hex")}.tmp`;
 		await fs.mkdir(path.dirname(target), { recursive: true });
-		await fs.writeFile(temporary, serialized, { encoding: "utf8", mode: 0o600 });
-		await fs.rename(temporary, target);
+		try {
+			const file = await fs.open(temporary, "wx", 0o600);
+			try {
+				await file.writeFile(serialized, "utf8");
+				await file.sync();
+			} finally {
+				await file.close();
+			}
+			await fs.rename(temporary, target);
+		} finally {
+			await fs.rm(temporary, { force: true });
+		}
 	}
 }

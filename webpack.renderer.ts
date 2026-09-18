@@ -12,7 +12,7 @@ export default (
 	args: { mode?: string },
 ): Configuration =>
 	merge(base(env, args), {
-		entry: "./src/renderer/renderer.tsx",
+		entry: { renderer: "./src/renderer/renderer.tsx", print: "./src/renderer/print.ts" },
 		module: {
 			rules: [
 				{
@@ -33,17 +33,32 @@ export default (
 			],
 		},
 		output: {
-			filename: "renderer.js",
+			filename: "[name].js",
 		},
+		// Electron loads local assets; these budgets still flag unusually large generated chunks.
+		performance: { maxAssetSize: 600_000, maxEntrypointSize: 600_000 },
 		plugins: [
 			new ContextReplacementPlugin(/moment[/\\]locale$/, /en|zh-cn|zh-tw/),
 			new HtmlWebpackPlugin({
+				chunks: ["renderer"],
 				title: pkg.productName,
 				meta: {
 					"Content-Security-Policy": {
 						"http-equiv": "Content-Security-Policy",
 						content:
 							"default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self' data:",
+					},
+				},
+			}),
+			new HtmlWebpackPlugin({
+				filename: "print.html",
+				chunks: ["print"],
+				title: "Dayleaf",
+				meta: {
+					"Content-Security-Policy": {
+						"http-equiv": "Content-Security-Policy",
+						content:
+							"default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:",
 					},
 				},
 			}),

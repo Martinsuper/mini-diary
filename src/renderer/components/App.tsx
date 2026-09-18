@@ -33,7 +33,7 @@ export interface StateProps {
 }
 
 export interface DispatchProps {
-	testFileExists: () => void;
+	testFileExists: () => Promise<void>;
 	updateThemePref: (themePref: ThemePref) => void;
 	openPreferences: () => void;
 }
@@ -77,8 +77,11 @@ export default class App extends Component<Props, State> {
 
 	componentDidMount(): void {
 		const { testFileExists } = this.props;
-		testFileExists();
-		this.setState({ isLoading: false });
+		void Promise.resolve(testFileExists())
+			.catch((error) =>
+				window.miniDiary.dialogs.showError(translations["diary-file"], error.message),
+			)
+			.finally(() => this.setState({ isLoading: false }));
 	}
 
 	componentDidUpdate(prevProps: Props): void {

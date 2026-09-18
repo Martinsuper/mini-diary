@@ -5,7 +5,9 @@ import { ThunkDispatchT } from "../../../../store/store";
 import PasswordPref, { DispatchProps } from "./PasswordPref";
 
 const mapDispatchToProps = (dispatch: ThunkDispatchT): DispatchProps => ({
-	updatePassword: (password: string): void => dispatch(updatePassword(password)),
+	updatePassword: async (password: string): Promise<void> => {
+		await dispatch(updatePassword(password));
+	},
 });
 
 export default connect(null, mapDispatchToProps)(PasswordPref);

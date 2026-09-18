@@ -153,6 +153,7 @@ export default function FormattingButtons(): ReactElement {
 					type="button"
 					className={`button button-invisible ${formatState.isBold ? "button-active" : ""}`}
 					aria-label={title(translations.bold, "⌘B")}
+					aria-pressed={formatState.isBold}
 					title={title(translations.bold, "⌘B")}
 					onClick={(): void => formatText("bold")}
 				>
@@ -162,6 +163,7 @@ export default function FormattingButtons(): ReactElement {
 					type="button"
 					className={`button button-invisible ${formatState.isItalic ? "button-active" : ""}`}
 					aria-label={title(translations.italic, "⌘I")}
+					aria-pressed={formatState.isItalic}
 					title={title(translations.italic, "⌘I")}
 					onClick={(): void => formatText("italic")}
 				>
@@ -173,6 +175,7 @@ export default function FormattingButtons(): ReactElement {
 						formatState.isStrikethrough ? "button-active" : ""
 					}`}
 					aria-label={translations.strikethrough}
+					aria-pressed={formatState.isStrikethrough}
 					title={translations.strikethrough}
 					onClick={(): void => formatText("strikethrough")}
 				>
@@ -182,6 +185,7 @@ export default function FormattingButtons(): ReactElement {
 					type="button"
 					className={`button button-invisible ${formatState.isCode ? "button-active" : ""}`}
 					aria-label={translations["inline-code"]}
+					aria-pressed={formatState.isCode}
 					title={translations["inline-code"]}
 					onClick={(): void => formatText("code")}
 				>

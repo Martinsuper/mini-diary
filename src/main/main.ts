@@ -1,6 +1,7 @@
-import { app, BrowserWindow, dialog, ipcMain } from "electron";
+import { app, BrowserWindow, dialog, ipcMain, powerMonitor } from "electron";
 import { IPC } from "../shared/ipc";
 import path from "path";
+import settings from "electron-settings";
 
 import contextMenu from "electron-context-menu";
 
@@ -19,7 +20,10 @@ initLogger();
 if (process.env.NODE_ENV !== "production") {
 	void import("electron-debug").then(({ default: electronDebug }) => electronDebug());
 }
-const diaryService = new DiaryService();
+const storedDirectory = settings.get("filePath");
+const diaryService = new DiaryService(
+	typeof storedDirectory === "string" && storedDirectory ? storedDirectory : undefined,
+);
 
 contextMenu({
 	showCopyImage: false,
@@ -44,8 +48,15 @@ async function createWindow(): Promise<BrowserWindow> {
 	});
 	let closeApproved = false;
 	let closePending = false;
+	let rendererGone = false;
+	let closeTimer: ReturnType<typeof setTimeout> | undefined;
+	win.webContents.on("render-process-gone", () => {
+		rendererGone = true;
+		closePending = false;
+	});
 	const onCloseReady = async (event: Electron.IpcMainEvent, error?: string): Promise<void> => {
 		if (event.sender !== win.webContents || !closePending) return;
+		clearTimeout(closeTimer);
 		try {
 			if (error) throw Error(error);
 			await diaryService.flush();
@@ -62,9 +73,39 @@ async function createWindow(): Promise<BrowserWindow> {
 		event.preventDefault();
 		if (closePending) return;
 		closePending = true;
+		const offerRecovery = async (): Promise<void> => {
+			const result = await dialog.showMessageBox(win, {
+				type: "warning",
+				buttons: ["Keep open", "Close using saved data"],
+				defaultId: 0,
+				cancelId: 0,
+				message:
+					"The editor is not responding. Changes already saved to disk are safe; unsaved typing may be lost.",
+			});
+			closePending = false;
+			if (result.response === 1) {
+				try {
+					await diaryService.flush();
+					closeApproved = true;
+					win.close();
+				} catch (error) {
+					dialog.showErrorBox("Save failed", error.message);
+				}
+			}
+		};
+		if (rendererGone) {
+			void offerRecovery();
+			return;
+		}
+		closeTimer = setTimeout(() => {
+			void offerRecovery();
+		}, 10_000);
 		win.webContents.send(IPC.app.prepareClose);
 	});
-	win.on("closed", () => ipcMain.removeListener(IPC.app.closeReady, onCloseReady));
+	win.on("closed", () => {
+		clearTimeout(closeTimer);
+		ipcMain.removeListener(IPC.app.closeReady, onCloseReady);
+	});
 	win.on("ready-to-show", (): void => {
 		win.show();
 	});
@@ -100,6 +141,8 @@ app.on("activate", async (): Promise<void> => {
 	initI18n();
 	buildMenu();
 	initIpcListeners(diaryService);
+	powerMonitor.on("suspend", () => getWindow()?.webContents.send("lock"));
+	powerMonitor.on("lock-screen", () => getWindow()?.webContents.send("lock"));
 
 	// Create and show BrowserWindow
 	setWindow(await createWindow());

@@ -1,6 +1,7 @@
 import React, { ReactElement, useEffect, useState } from "react";
 
 import { translations } from "../../../../utils/i18n";
+import { flushPersistence } from "../../../../utils/persistence";
 import DiaryResetButtonContainer from "./diary-reset-button/DiaryResetButtonContainer";
 
 export interface StateProps {
@@ -28,6 +29,7 @@ export default function FileDirPref(props: Props): ReactElement {
 			return;
 		}
 		try {
+			await flushPersistence();
 			setFilePath(await window.miniDiary.diary.move(directory));
 		} catch (error) {
 			void window.miniDiary.dialogs.showError(
@@ -44,9 +46,13 @@ export default function FileDirPref(props: Props): ReactElement {
 		if (!directory) {
 			return;
 		}
-		await window.miniDiary.diary.setDirectory(directory);
-		setFilePath(await window.miniDiary.diary.getPath());
-		testFileExists();
+		try {
+			await window.miniDiary.diary.setDirectory(directory);
+			setFilePath(await window.miniDiary.diary.getPath());
+			await testFileExists();
+		} catch (error) {
+			await window.miniDiary.dialogs.showError(translations["diary-file"], error.message);
+		}
 	};
 
 	return (

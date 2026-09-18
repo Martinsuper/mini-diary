@@ -5,8 +5,8 @@ import Banner from "../../../elements/general/banner/Banner";
 import StartPage from "../start-page-hoc/StartPage";
 
 export interface StateProps {
-	decryptErrorMsg: string;
 	decryptStatus: string;
+	decryptErrorMsg: string;
 }
 
 export interface DispatchProps {
@@ -66,7 +66,7 @@ export default class PasswordPrompt extends PureComponent<Props, State> {
 	}
 
 	render(): ReactNode {
-		const { decryptErrorMsg, decryptStatus } = this.props;
+		const { decryptStatus, decryptErrorMsg } = this.props;
 		const { isSubmitted, password } = this.state;
 
 		return (
@@ -83,13 +83,24 @@ export default class PasswordPrompt extends PureComponent<Props, State> {
 							this.input = input;
 						}}
 					/>
-					<button type="submit" className="button button-main">
+					<button
+						type="submit"
+						className="button button-main"
+						disabled={decryptStatus === "inProgress"}
+					>
 						{translations.unlock}
 					</button>
 				</form>
 				<div className="password-prompt-banner">
 					{isSubmitted && decryptStatus === "error" && (
-						<Banner bannerType="error" message={decryptErrorMsg} />
+						<Banner
+							bannerType="error"
+							message={
+								/authenticate|bad decrypt/i.test(decryptErrorMsg)
+									? translations["wrong-password"]
+									: decryptErrorMsg
+							}
+						/>
 					)}
 				</div>
 			</StartPage>

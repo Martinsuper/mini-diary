@@ -3,7 +3,8 @@ import React, { PureComponent, ReactNode } from "react";
 
 import { Entries } from "../../../../types";
 import { fromIndexDate, toDateString } from "../../../../utils/dateFormat";
-import { translations } from "../../../../utils/i18n";
+import { lang, translations } from "../../../../utils/i18n";
+import { getSearchText } from "../../../../utils/searchIndex";
 import Banner from "../../general/banner/Banner";
 
 function highlight(text: string, query: string): ReactNode {
@@ -31,46 +32,54 @@ export interface DispatchProps {
 
 type Props = StateProps & DispatchProps;
 
-export default class SearchResults extends PureComponent<Props, {}> {
+export default class SearchResults extends PureComponent<Props, { limit: number }> {
 	constructor(props: Props) {
 		super(props);
+		this.state = { limit: 100 };
 
 		this.generateSearchResults = this.generateSearchResults.bind(this);
 	}
 
 	generateSearchResults(): ReactNode[] {
+		const { limit } = this.state;
 		const { dateSelected, entries, searchResults, setDateSelected, searchKey } = this.props;
 
-		return searchResults.reduce((results: ReactNode[], searchResult): ReactNode[] => {
-			if (searchResult in entries) {
-				const date = fromIndexDate(searchResult);
-				const { title, text } = entries[searchResult];
-				const position = text.toLocaleLowerCase().indexOf(searchKey.trim().toLocaleLowerCase());
-				const start = Math.max(0, position - 25);
-				const summary = `${start ? "…" : ""}${text.slice(start, start + 100).replace(/\s+/g, " ")}`;
-				const isSelected = date.isSame(dateSelected, "day");
-				results.push(
-					<li key={searchResult} className="search-result">
-						<button
-							type="button"
-							className={`button ${isSelected ? "button-main" : ""}`}
-							aria-current={isSelected ? "date" : undefined}
-							onClick={(): void => setDateSelected(date)}
-						>
-							<p className="search-date text-faded">{toDateString(date)}</p>
-							<p className={`search-title ${!title ? "text-faded" : ""}`}>
-								{highlight(title || translations["no-title"], searchKey)}
-							</p>
-							<p className="search-summary">{highlight(summary, searchKey)}</p>
-						</button>
-					</li>,
-				);
-			}
-			return results;
-		}, []);
+		return searchResults
+			.slice(0, limit)
+			.reduce((results: ReactNode[], searchResult): ReactNode[] => {
+				if (searchResult in entries) {
+					const date = fromIndexDate(searchResult);
+					const { title } = entries[searchResult];
+					const text = getSearchText(searchResult);
+					const position = text.toLocaleLowerCase().indexOf(searchKey.trim().toLocaleLowerCase());
+					const start = Math.max(0, position - 25);
+					const summary = `${start ? "…" : ""}${text
+						.slice(start, start + 100)
+						.replace(/\s+/g, " ")}`;
+					const isSelected = date.isSame(dateSelected, "day");
+					results.push(
+						<li key={searchResult} className="search-result">
+							<button
+								type="button"
+								className={`button ${isSelected ? "button-main" : ""}`}
+								aria-current={isSelected ? "date" : undefined}
+								onClick={(): void => setDateSelected(date)}
+							>
+								<p className="search-date text-faded">{toDateString(date)}</p>
+								<p className={`search-title ${!title ? "text-faded" : ""}`}>
+									{highlight(title || translations["no-title"], searchKey)}
+								</p>
+								<p className="search-summary">{highlight(summary, searchKey)}</p>
+							</button>
+						</li>,
+					);
+				}
+				return results;
+			}, []);
 	}
 
 	render(): ReactNode {
+		const { searchResults } = this.props;
 		const searchResultsEl = this.generateSearchResults();
 		return (
 			<ul
@@ -78,6 +87,9 @@ export default class SearchResults extends PureComponent<Props, {}> {
 				aria-label={`${searchResultsEl.length} ${translations.search}`}
 				className="search-results"
 			>
+				<li role="status">
+					{searchResultsEl.length} / {searchResults.length}
+				</li>
 				{searchResultsEl.length === 0 ? (
 					<li>
 						<Banner
@@ -88,6 +100,17 @@ export default class SearchResults extends PureComponent<Props, {}> {
 					</li>
 				) : (
 					searchResultsEl
+				)}
+				{searchResultsEl.length < searchResults.length && (
+					<li>
+						<button
+							type="button"
+							className="button"
+							onClick={() => this.setState(({ limit }) => ({ limit: limit + 100 }))}
+						>
+							{lang.startsWith("zh") ? "显示更多" : "Show more"}
+						</button>
+					</li>
 				)}
 			</ul>
 		);

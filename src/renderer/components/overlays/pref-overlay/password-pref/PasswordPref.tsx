@@ -4,7 +4,7 @@ import { translations } from "../../../../utils/i18n";
 import Banner from "../../../elements/general/banner/Banner";
 
 export interface DispatchProps {
-	updatePassword: (newPassword: string) => void;
+	updatePassword: (newPassword: string) => Promise<void>;
 }
 
 type Props = DispatchProps;
@@ -17,6 +17,9 @@ export default function PasswordPref(props: Props): ReactElement {
 
 	const [password1, setPassword1] = useState("");
 	const [password2, setPassword2] = useState("");
+	const [busy, setBusy] = useState(false);
+	const [message, setMessage] = useState("");
+	const [failed, setFailed] = useState(false);
 
 	const onPassword1Change = (e: ChangeEvent<HTMLInputElement>): void =>
 		setPassword1(e.target.value);
@@ -24,13 +27,22 @@ export default function PasswordPref(props: Props): ReactElement {
 	const onPassword2Change = (e: ChangeEvent<HTMLInputElement>): void =>
 		setPassword2(e.target.value);
 
-	const onClick = (): void => {
+	const onClick = async (): Promise<void> => {
 		if (password1 === password2) {
-			updatePassword(password1);
-			setPassword1("");
-			setPassword2("");
-		} else {
-			throw Error(translations["passwords-no-match"]);
+			setBusy(true);
+			setMessage("");
+			try {
+				await updatePassword(password1);
+				setPassword1("");
+				setPassword2("");
+				setFailed(false);
+				setMessage(translations["saved-automatically"]);
+			} catch (error) {
+				setFailed(true);
+				setMessage(error.message);
+			} finally {
+				setBusy(false);
+			}
 		}
 	};
 
@@ -56,7 +68,7 @@ export default function PasswordPref(props: Props): ReactElement {
 				/>
 				<button
 					type="button"
-					disabled={!password1 || !password2 || !passwordsMatch}
+					disabled={busy || !password1 || !password2 || !passwordsMatch}
 					onClick={onClick}
 					className="button button-main"
 				>
@@ -64,6 +76,7 @@ export default function PasswordPref(props: Props): ReactElement {
 				</button>
 			</div>
 			<div className="password-update-banner">
+				{message && <Banner bannerType={failed ? "error" : "info"} message={message} />}
 				{password1 && password2 && !passwordsMatch && (
 					<Banner bannerType="error" message={translations["passwords-no-match"]} />
 				)}

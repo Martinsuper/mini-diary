@@ -6,6 +6,8 @@ import ImportOverlay, { DispatchProps, StateProps } from "./ImportOverlay";
 
 const mapStateToProps = (state: RootState): StateProps => ({
 	importFormat: state.import.importFormat,
+	importStatus: state.import.importStatus,
+	importErrorMsg: state.import.importErrorMsg,
 });
 
 const mapDispatchToProps = (dispatch: ThunkDispatchT): DispatchProps => ({

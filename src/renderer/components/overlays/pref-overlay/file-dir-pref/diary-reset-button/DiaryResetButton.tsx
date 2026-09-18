@@ -7,8 +7,8 @@ export interface StateProps {
 }
 
 export interface DispatchProps {
-	resetDiary: () => void;
-	testFileExists: () => void;
+	resetDiary: () => Promise<void>;
+	testFileExists: () => Promise<void>;
 }
 
 type Props = StateProps & DispatchProps;
@@ -28,15 +28,19 @@ export default function DiaryResetButton(props: Props): ReactElement {
 			translations.no,
 		);
 		if (confirmed) {
-			resetDiary();
-			testFileExists();
+			try {
+				await resetDiary();
+				await testFileExists();
+			} catch (error) {
+				await window.miniDiary.dialogs.showError(translations["reset-diary"], error.message);
+			}
 		}
 	};
 
 	return (
 		<button
 			type="button"
-			className="button button-main"
+			className="button button-danger"
 			disabled={!fileExists}
 			onClick={showResetPrompt}
 		>
