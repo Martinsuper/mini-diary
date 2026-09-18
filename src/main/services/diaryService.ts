@@ -215,15 +215,20 @@ export default class DiaryService {
 		if (!(await this.fileExists())) return;
 		const directory = path.join(this.directory, ".dayleaf-backups");
 		await fs.mkdir(directory, { recursive: true, mode: 0o700 });
-		const name = `${Date.now()}-${crypto.randomBytes(4).toString("hex")}.txt`;
+		const existing = (await fs.readdir(directory)).filter((file) =>
+			/^\d+-[a-f0-9]+\.txt$/.test(file),
+		);
+		const latestTimestamp = existing.reduce(
+			(latest, file) => Math.max(latest, Number(file.split("-", 1)[0])),
+			0,
+		);
+		const timestamp = Math.max(Date.now(), latestTimestamp + 1);
+		const name = `${timestamp}-${crypto.randomBytes(4).toString("hex")}.txt`;
 		await fs.copyFile(this.filePath(), path.join(directory, name), constants.COPYFILE_EXCL);
 		await fs.chmod(path.join(directory, name), 0o600);
-		const files = (await fs.readdir(directory))
-			.filter((file) => /^\d+-[a-f0-9]+\.txt$/.test(file))
-			.sort()
-			.reverse();
+		const files = [...existing, name].sort().reverse();
 		await Promise.all(files.slice(10).map((file) => fs.unlink(path.join(directory, file))));
-		this.lastBackup = Date.now();
+		this.lastBackup = timestamp;
 	}
 
 	/** Return only snapshots owned by the current diary directory. */

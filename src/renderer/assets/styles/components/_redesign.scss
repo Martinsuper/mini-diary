@@ -206,8 +206,7 @@ textarea {
 
 .view-selector {
 	display: flex;
-	gap: 8px;
-	margin-bottom: 12px;
+	margin-bottom: 20px;
 }
 
 .search-input-wrapper {
@@ -254,16 +253,14 @@ textarea {
 	box-shadow: none !important;
 }
 
-.button-today {
-	display: inline-flex;
-	flex: 0 0 36px;
-	align-items: center;
-	justify-content: center;
-}
-
 .calendar-nav {
 	position: relative;
 	margin-bottom: 18px;
+
+	.calendar-nav-row {
+		display: flex;
+		align-items: center;
+	}
 
 	.month-selector-wrapper {
 		position: relative;
@@ -314,6 +311,26 @@ textarea {
 			height: 32px;
 			padding: 0 24px 0 8px;
 		}
+	}
+}
+
+.calendar-today-button {
+	display: block;
+	min-height: 24px;
+	margin: 2px auto 0;
+	padding: 2px 8px;
+	color: var(--ui-accent);
+	font-size: 12px;
+	line-height: 20px;
+	text-align: center;
+	border-radius: 4px;
+
+	&:hover {
+		background: var(--ui-accent-soft);
+	}
+
+	&:focus-visible {
+		box-shadow: 0 0 0 2px var(--ui-focus-ring);
 	}
 }
 

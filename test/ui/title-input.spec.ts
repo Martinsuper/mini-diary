@@ -51,6 +51,6 @@ test("persists a title typed into an empty entry without placeholder text", asyn
 	expect(await title.textContent()).not.toContain("Add a title");
 
 	await page.locator(".calendar-nav button").first().click();
-	await page.locator(".calendar-nav > button").last().click();
+	await page.locator(".calendar-nav-row > button").last().click();
 	await expect(title).toHaveText("My automated title");
 });

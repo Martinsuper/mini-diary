@@ -14,16 +14,9 @@
 }
 
 .calendar-nav {
-	display: flex;
-	align-items: center;
-
 	.month-name {
 		flex: 1;
 		text-align: center;
-	}
-
-	.button-today {
-		width: $input-height;
 	}
 }
 

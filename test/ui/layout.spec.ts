@@ -53,6 +53,7 @@ async function box(
 test("keeps header and search icons fully visible", async (): Promise<void> => {
 	const searchWrapper = await box(".search-input-wrapper");
 	const searchIcon = await box(".search-input-icon");
+	const sidebar = await box(".sidebar");
 	const settingsButton = await box(".app-icon-button");
 	const settingsIcon = await box(".app-icon-button svg");
 
@@ -64,6 +65,8 @@ test("keeps header and search icons fully visible", async (): Promise<void> => {
 	expect(searchIcon.y + searchIcon.height).toBeLessThanOrEqual(
 		searchWrapper.y + searchWrapper.height,
 	);
+	expect(searchWrapper.width).toBe(sidebar.width - 41);
+	expect(page.locator(".calendar-today-button")).toHaveCount(0);
 	expect(settingsIcon.x).toBeGreaterThanOrEqual(settingsButton.x);
 	expect(settingsIcon.y).toBeGreaterThanOrEqual(settingsButton.y);
 	expect(settingsIcon.x + settingsIcon.width).toBeLessThanOrEqual(
@@ -76,6 +79,15 @@ test("keeps header and search icons fully visible", async (): Promise<void> => {
 	await expect(page.locator(".app-icon-button")).toHaveScreenshot("settings-button.png", {
 		maxDiffPixels: 160,
 	});
+});
+
+test("shows the today action only away from today", async (): Promise<void> => {
+	await page.locator(".calendar-nav-row > button").first().click();
+	const todayButton = page.locator(".calendar-today-button");
+	await expect(todayButton).toBeVisible();
+	await expect(todayButton).toHaveText(/今天|Today/);
+	await todayButton.click();
+	await expect(todayButton).toHaveCount(0);
 });
 
 test("preserves the legacy sidebar and editor geometry", async (): Promise<void> => {

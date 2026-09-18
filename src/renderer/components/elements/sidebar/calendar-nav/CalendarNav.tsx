@@ -82,62 +82,73 @@ export default function CalendarNav(props: Props): ReactElement {
 
 	return (
 		<div className="calendar-nav">
-			<button
-				type="button"
-				className="button button-invisible"
-				disabled={!canClickPrev}
-				aria-label={translations["previous-month"]}
-				title={translations["previous-month"]}
-				onClick={setMonthSelectedPrevious}
-			>
-				<PrevIcon {...iconProps} />
-			</button>
-			<div className="month-selector-wrapper" ref={selectorRef}>
+			<div className="calendar-nav-row">
 				<button
 					type="button"
-					className="month-selector"
-					aria-expanded={selectorOpen}
-					onClick={() => setSelectorOpen(!selectorOpen)}
+					className="button button-invisible"
+					disabled={!canClickPrev}
+					aria-label={translations["previous-month"]}
+					title={translations["previous-month"]}
+					onClick={setMonthSelectedPrevious}
 				>
-					{toMonthYear(dateSelected)}
+					<PrevIcon {...iconProps} />
 				</button>
-				{selectorOpen && (
-					<div className="month-selector-popover">
-						<select
-							aria-label={translations["go-to-date"]}
-							value={dateSelected.year()}
-							onChange={onYearSelection}
-						>
-							{years.map((year) => (
-								<option key={year} value={year}>
-									{year}
-								</option>
-							))}
-						</select>
-						<select
-							aria-label={translations["next-month"]}
-							value={dateSelected.month()}
-							onChange={onMonthSelection}
-						>
-							{Array.from({ length: latestMonth + 1 }, (_, month) => (
-								<option key={month} value={month}>
-									{dateSelected.clone().month(month).format("MMMM")}
-								</option>
-							))}
-						</select>
-					</div>
-				)}
+				<div className="month-selector-wrapper" ref={selectorRef}>
+					<button
+						type="button"
+						className="month-selector"
+						aria-expanded={selectorOpen}
+						onClick={() => setSelectorOpen(!selectorOpen)}
+					>
+						{toMonthYear(dateSelected)}
+					</button>
+					{selectorOpen && (
+						<div className="month-selector-popover">
+							<select
+								aria-label={translations["go-to-date"]}
+								value={dateSelected.year()}
+								onChange={onYearSelection}
+							>
+								{years.map((year) => (
+									<option key={year} value={year}>
+										{year}
+									</option>
+								))}
+							</select>
+							<select
+								aria-label={translations["next-month"]}
+								value={dateSelected.month()}
+								onChange={onMonthSelection}
+							>
+								{Array.from({ length: latestMonth + 1 }, (_, month) => (
+									<option key={month} value={month}>
+										{dateSelected.clone().month(month).format("MMMM")}
+									</option>
+								))}
+							</select>
+						</div>
+					)}
+				</div>
+				<button
+					type="button"
+					className="button button-invisible"
+					disabled={!canClickNext}
+					aria-label={translations["next-month"]}
+					title={translations["next-month"]}
+					onClick={setMonthSelectedNext}
+				>
+					<NextIcon {...iconProps} />
+				</button>
 			</div>
-			<button
-				type="button"
-				className="button button-invisible"
-				disabled={!canClickNext}
-				aria-label={translations["next-month"]}
-				title={translations["next-month"]}
-				onClick={setMonthSelectedNext}
-			>
-				<NextIcon {...iconProps} />
-			</button>
+			{!dateSelected.isSame(today, "day") && (
+				<button
+					type="button"
+					className="calendar-today-button"
+					onClick={() => setDateSelected(today)}
+				>
+					{translations.today}
+				</button>
+			)}
 		</div>
 	);
 }
